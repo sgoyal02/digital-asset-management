@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+//---enum types----
+enum Role {
+  USER
+  ADMIN
+  MANAGER
+}
+
+enum AssetStatus {
+  PENDING
+  UPLOADED
+  FAILED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  EXPIRED
+  ARCHIVED
+}
+
+enum UsageAction {
+  VIEW
+  DOWNLOAD
+  EDIT
+}
+
+//--- models--
+model User{
+  id Int @id @default(autoincrement())
+  name String
+  email String @unique
+  password String
+  departmentId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  role Role @default(USER)
+  department Department? @relation(fields:[departmentId], references:[id])
+  assets Asset[]
+  usageLogs UsageLog[]
+  collections Collection[]
+  @@map("users")
+}
+
+model Department{
+  id String @id @default(cuid())
+  name String @unique
+  createdAt DateTime @default(now())
+  //to do -- if we more field 
+  users User[]
+  assets Asset[]
+  @@map("departments")
+}
+
+model Asset{
+  id String @id @default(cuid())
+  title String
+  fileName String
+  fileUrl String   //for storage ref
+  fileKey String     //id ref
+  mimeType String
+  size BigInt
+  duration Float?
+  ownerId Int
+  departmentId String?
+  status AssetStatus @default(PENDING)
+
+  expiryDate DateTime?
+  isArchived Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner User @relation(fields: [ownerId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id])
+  versions  AssetVersion[]
+  //collections -to do
+  collections AssetCollection[]
+  usageLogs UsageLog[]
+  @@map("assets")
+}
+model AssetVersion {
+  id String @id @default(cuid())
+  assetId String
+  versionNumber Int
+  fileUrl String
+  fileKey String
+  size BigInt
+  createdAt DateTime @default(now())
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  @@unique([assetId, versionNumber])
+  @@map("asset_versions")
+}
+
+model UsageLog{
+  id String @id @default(cuid())
+  assetId String
+  userId Int
+  action UsageAction
+  createdAt DateTime @default(now())
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+  @@map("usage_logs")
+}
+//to do--add more
+model Collection{
+  id String @id @default(cuid())
+  name String
+  description String?
+  ownerId Int
+  createdAt DateTime @default(now())
+  owner User @relation(fields: [ownerId], references: [id])
+  assets AssetCollection[]
+  @@map("collections")
+}
+model AssetCollection {
+  assetId String
+  collectionId String
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  @@id([assetId, collectionId])
+  @@map("asset_collections")
+}
