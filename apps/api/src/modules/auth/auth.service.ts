@@ -7,12 +7,13 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await prisma.user.findUnique({
       where: { email },
+      // include:{department: true},
       select: {
         id: true,email: true,name: true,role: true,password: true,
       }
     });
     if (!user || !user.password) {
-      throw new Error('Invalid email or password');
+      throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 });
     }
 
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role },JWT_SECRET!,

@@ -1,10 +1,4 @@
-export interface RegisterInp {
-  email: string;
-  name: string;
-  password: string;
-  departmentId?: string;
-  role?: 'USER'|'MANAGER'|'ADMIN';
-}
+
 export interface LoginInp {
   email: string;
   password: string;

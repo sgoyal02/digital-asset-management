@@ -1,12 +1,11 @@
 
 import express from "express";
 import { prisma } from "./lib/prisma";
-const app = express();
-const PORT= process.env.PORT ||4000;
+import dotenv from 'dotenv';
+import app from "./app";
 
-app.get("/", (req, res) => {
-  res.send("api running");
-});
+dotenv.config();
+const PORT= process.env.PORT ||4000;
 
 //--to check prisma- test
 // app.get('/api/users', async (req, res) => {

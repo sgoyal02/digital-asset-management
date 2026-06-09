@@ -1,11 +1,17 @@
 import express, { Application, NextFunction, Request, Response } from "express";
 import {globalRouter } from './router';
 import { sendError } from "./response";
+import cors from 'cors';
 
-const app:Application=express();
+const app=express();
 
-// app.use(cors());  //to add
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+  ]
+}));
 app.use(express.json());
+
 app.use((req, res, next) => {
     console.log(`--${req.method}: ${req.path}`);
     next();
