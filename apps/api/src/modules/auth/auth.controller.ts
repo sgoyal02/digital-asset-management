@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { LoginInp } from './auth.types';
 import { sendError, sendSuccess } from '../../response';
 
 const authService = new AuthService();

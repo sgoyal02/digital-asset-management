@@ -15,8 +15,8 @@ export class AuthService {
     if (!user || !user.password) {
       throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 });
     }
-
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role },JWT_SECRET!,
+      //user data add to jwt
+    const token = jwt.sign({id:user.id, email: user.email, role: user.role},JWT_SECRET!,
       { expiresIn: '1hr' }
     );
     const { password:_, ...rest } = user;
