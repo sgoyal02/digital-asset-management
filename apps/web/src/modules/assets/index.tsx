@@ -74,52 +74,7 @@ const AssetsList = () => {
 
       <ErrorMsg msg={assets.error} />
 
-      <div className="bg-card border border-border rounded-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left p-5 text-gray font-medium">Asset</th>
-                <th className="text-left p-5 text-gray font-medium">Owner</th>
-                <th className="text-left p-5 text-gray font-medium">Type</th>
-                <th className="text-left p-5 text-gray font-medium">Size</th>
-                <th className="text-left p-5 text-gray font-medium">Status</th>
-                <th className="text-left p-5 text-gray font-medium">Upload Date</th>
-                <th className="w-20">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {assets.isLoad ? (
-                <tr><td colSpan={7} className="p-10 text-center text-gray">Loading assets...</td></tr>
-              ) : assets.data.length === 0 ? (
-                <tr><td colSpan={7} className="p-3 text-left text-gray">No assets found</td></tr>
-              ) : (
-                assets.data.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-hover transition-colors">
-                    <td className="p-5">
-                          <p className="text-sm text-muted">{asset.fileName}</p>
-                    </td>
-                    <td className="p-5 text-gray">{asset.owner?.name || '-'}</td>
-                    <td className="p-5 text-gray uppercase">{asset.fileType}</td>
-                    <td className="p-5 text-gray">
-                      {(asset.fileSize/1024/1024).toFixed(2)} MB
-                    </td>
-                    <td className="p-5">
-                      <StatusBadge status={asset.status} />
-                    </td>
-                    <td className="p-5 text-gray text-sm">
-                      {new Date(asset.uploadedAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-5">
-                      <button className="text-primary-400 hover:text-primary-300">View</button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      
     </div>
   );
 };
