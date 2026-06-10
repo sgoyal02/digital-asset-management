@@ -1,11 +1,5 @@
 import { Response } from "express";
-export interface ApiResponse<T=any> {
-  success:boolean,
-  statusCode:number,
-  msg: string,
-  data?:T|null,
-  err:string|null
-} 
+import { ApiResponse } from "./types";
 
 export const sendSuccess=<T>(res:Response,data: T, msg='Success',statusCode = 200): void => {
   const responseBody: ApiResponse<T> = {

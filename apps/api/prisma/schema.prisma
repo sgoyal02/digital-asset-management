@@ -36,7 +36,7 @@ model User{
   name String
   email String @unique
   password String
-  departmentId String?
+  departmentId Int?
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
   role Role @default(USER)
@@ -48,7 +48,7 @@ model User{
 }
 
 model Department{
-  id String @id @default(cuid())
+  id Int @id @default(autoincrement())
   name String @unique
   createdAt DateTime @default(now())
   //to do -- if we more field 
@@ -58,8 +58,7 @@ model Department{
 }
 
 model Asset{
-  id String @id @default(cuid())
-  title String
+  id Int @id @default(autoincrement())
   fileName String
   fileUrl String   //for storage ref
   fileKey String     //id ref
@@ -67,7 +66,7 @@ model Asset{
   size BigInt
   duration Float?
   ownerId Int
-  departmentId String?
+  departmentId Int?
   status AssetStatus @default(PENDING)
 
   expiryDate DateTime?
@@ -83,8 +82,8 @@ model Asset{
   @@map("assets")
 }
 model AssetVersion {
-  id String @id @default(cuid())
-  assetId String
+  id Int @id @default(autoincrement())
+  assetId Int
   versionNumber Int
   fileUrl String
   fileKey String
@@ -96,8 +95,8 @@ model AssetVersion {
 }
 
 model UsageLog{
-  id String @id @default(cuid())
-  assetId String
+  id Int @id @default(autoincrement())
+  assetId Int
   userId Int
   action UsageAction
   createdAt DateTime @default(now())
@@ -107,7 +106,7 @@ model UsageLog{
 }
 //to do--add more
 model Collection{
-  id String @id @default(cuid())
+  id Int @id @default(autoincrement())
   name String
   description String?
   ownerId Int
@@ -117,8 +116,8 @@ model Collection{
   @@map("collections")
 }
 model AssetCollection {
-  assetId String
-  collectionId String
+  assetId Int
+  collectionId Int
   asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
   collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   @@id([assetId, collectionId])
