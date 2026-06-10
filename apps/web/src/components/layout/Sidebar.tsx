@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
-import file from '../../assets/file.svg';
-import dashIcon from '../../assets/dashboard.svg';
-import folder from '../../assets/folder.svg';
+import file from '../../images/file.svg';
+import dashIcon from '../../images/dashboard.svg';
+import folder from '../../images/folder.svg';
 
 const menuItems = [
   { to: ".", label: "Dashboard", icon: dashIcon}, 
