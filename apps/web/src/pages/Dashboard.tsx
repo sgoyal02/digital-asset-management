@@ -19,6 +19,9 @@ const Dashboard = () => {
             setStats({isLoad: false,data: response.data || response,errTxt: ''});
         } catch (err:any) {
             console.error('dash stats err: ', err);
+            if (err.code === "ERR_CANCELED" ||err.name === "CanceledError") {
+              return;
+            }
             setStats({isLoad: false, data: null, errTxt: err.message|| 'Failed to load assets stats.'});
         }
     };
@@ -115,7 +118,7 @@ const Dashboard = () => {
                   <span className="font-medium text-main-white">{stats.data?.processStatus.pendingPer}</span>
                 </div>
             <div className="h-2 bg-surface rounded-full overflow-hidden">
-            <div className={`h-2 bg-info rounded-full w-[${stats.data?.processStatus.pendingPer}]`} />
+            <div className={`h-2 bg-info rounded-full w-${stats.data?.processStatus.pendingPer}`} />
                 </div>
               </div>
               <div>
@@ -124,7 +127,7 @@ const Dashboard = () => {
                   <span className="font-medium text-main-white">{stats.data?.processStatus.failedPer}</span>
                 </div>
                 <div className="h-2 bg-surface rounded-full overflow-hidden">
-                  <div className={`h-2 bg-error rounded-full w-[${stats.data?.processStatus.failedPer}]`} />
+                  <div className={`h-2 bg-error rounded-full w-${stats.data?.processStatus.failedPer}`} />
                 </div>
               </div>
             </div>

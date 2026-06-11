@@ -20,7 +20,8 @@ axiosInstance.interceptors.response.use((response) => response,
                 error.message || 'Something went wrong. Please try again.';
     if (error.response && error.response.status === 401) {  
         localStorage.clear();
-        // window.location.href = '/login';
+        sessionStorage.clear();
+        window.location.replace('/login');
     }
     return Promise.reject(({
         status: error.response?.status || 500,
