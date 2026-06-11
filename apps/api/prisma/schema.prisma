@@ -28,6 +28,7 @@ enum UsageAction {
   VIEW
   DOWNLOAD
   EDIT
+  UPLOAD
 }
 
 //--- models--
