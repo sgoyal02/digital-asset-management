@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { AssetController } from './assets.controller';
 import multer from 'multer';
+import { AssetController } from './assets.controller';
 import { authMiddleware } from '../../middleware/auth.middleware';
 
 const router = Router();

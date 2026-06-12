@@ -10,7 +10,7 @@ export class DashboardService{
 
     const expring=await prisma.asset.count({
       where:{
-        expiryDate:{lte: addDays(currDate, 30), //lessthan equl
+        expiryDate:{lte: addDays(currDate, 5), //lessthan equl
           gte: currDate, //greaterthan equal
         },
         isArchived: false,
@@ -41,8 +41,8 @@ export class DashboardService{
         ...(role !== 'ADMIN' && { ownerId: userId })
       }
     });
-    const pending = processing.find(p =>p.status === 'PENDING')?._count.id || 0;
-    const failed = processing.find(p =>p.status === 'FAILED')?._count.id || 0;
+    const pending = processing.find((p:any) =>p.status === 'PENDING')?._count.id || 0;
+    const failed = processing.find((p:any) =>p.status === 'FAILED')?._count.id || 0;
     const total = pending + failed;
     const pendingPer = total? Math.round((pending/total)* 100): 0;
     const failedPer = total? Math.round((failed/total)* 100): 0;
