@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
-    "types": ["node", "express"]
+    "types": ["node", "express"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

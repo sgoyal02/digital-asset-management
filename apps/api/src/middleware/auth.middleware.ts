@@ -1,13 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { sendError } from "../response";
 import jwt from 'jsonwebtoken';
+import { User } from "../generated/prisma/client";
 
 export interface AuthReq extends Request{
-    user?: {
-        id: number;
-        email: string;
-        role: "USER"| "MANAGER"| "ADMIN";
-    }
+    user?:User
 }
 const JWT_SECRET = process.env.JWT_SECRET!;
 

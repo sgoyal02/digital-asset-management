@@ -38,10 +38,14 @@ model User{
   email String @unique
   password String
   departmentId Int?
+  managerId Int?
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
   role Role @default(USER)
   department Department? @relation(fields:[departmentId], references:[id])
+  manager User? @relation("Team", fields: [managerId], references: [id])
+  subordinates User[] @relation("Team")
+
   assets Asset[]
   usageLogs UsageLog[]
   collections Collection[]
@@ -69,6 +73,9 @@ model Asset{
   ownerId Int
   departmentId Int?
   status AssetStatus @default(PENDING)
+  fileHash String?   // sh-256 of file for dupe
+  thumbnailUrl String?
+  isDupe Boolean @default(false)
 
   expiryDate DateTime?
   isArchived Boolean @default(false)
