@@ -1,3 +1,12 @@
+export const formatDate=(dateParam: string): string=> {
+  return new Date(dateParam).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+
 export interface HeaderProp{
     toggleSidebar:()=>void
 }
@@ -50,13 +59,22 @@ export interface Asset {
   id: number;
   fileName: string;
   fileUrl:string;
-  fileType: string;
-  fileSize: number;
+  mimeType: string;
+  size: number;
   status: 'PENDING'|'UPLOADED'|'FAILED'|'UNDER_REVIEW'|'APPROVED'|'REJECTED'|'EXPIRED'| 'ARCHIVED';
   ownerId: number;
   owner?: {
     name: string;
   };
-  uploadedAt: string;
+  createdAt: string;
   updatedAt?: string;
+  expiryDate?:string
+}
+
+export interface AssetDetailProps {
+  asset: any;
+  currentUser: User|null;
+  // onApprove?: (id: number) => void;
+  // onReject?: (id: number) => void;
+  onBack?: () => void;
 }

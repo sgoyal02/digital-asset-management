@@ -24,7 +24,7 @@ const DashboardLayout = () => {
       <Header toggleSidebar={() => setOpen(!isOpen)}/>
       <div className="flex pt-16">
         <Sidebar isOpen={isOpen}/>
-        <main className={`flex-1 p-6 md:p-8 min-h-[calc(100vh-4rem)] transition-all duration-300
+        <main className={`flex-1 p-6 min-w-0 md:p-8 min-h-[calc(100vh-4rem)] transition-all duration-300
           ${isOpen ? 'ml-64' : 'ml-20'}`}>
           <Outlet/>
         </main>

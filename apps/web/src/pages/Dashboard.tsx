@@ -123,11 +123,11 @@ const Dashboard = () => {
               </div>
               <div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray">Faield Assets</span>
+                  <span className="text-gray">Failed Assets</span>
                   <span className="font-medium text-main-white">{stats.data?.processStatus.failedPer}</span>
                 </div>
                 <div className="h-2 bg-surface rounded-full overflow-hidden">
-                  <div className={`h-2 bg-error rounded-full w-${stats.data?.processStatus.failedPer}`} />
+                  <div className={`h-2 bg-error rounded-full w-${stats.data?.processStatus.failedPer ||0}`} />
                 </div>
               </div>
             </div>

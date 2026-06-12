@@ -1,14 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import debounce from 'lodash/debounce';
 import { useApiService } from '../../services/useApiService';
-import type { Asset } from '../../utils/types';
+import { formatDate, type Asset } from '../../utils/types';
 import ErrorMsg from '../../components/ErrorMsg';
 import StatusBadge from '../../components/StatusBadge';
+import { useAuth } from '../../hooks/AuthContext';
+import AssetDetail from './AssetDetail';
 
 const AssetsList = () => {
   const { makeReq } = useApiService();
+  const {user}= useAuth();
   const [assets, setAssets] = useState<{data:Asset[], isLoad:boolean, error:string|null}>({data:[], isLoad: false, error:null});
   const [searchTerm, setSearchTerm] = useState('');
+  const [view, setView] = useState<{isOpen:boolean, data:Asset|null}>({isOpen: false, data:null});
   
   const fetchAssets = useCallback(async(search: string = '', signal?:AbortSignal) => {
    setAssets((prev)=>({...prev, isLoad: true, error: null}))
@@ -27,9 +31,8 @@ const AssetsList = () => {
       // if (err.code === "ERR_CANCELED" ||err.name === "CanceledError") {
       //   return;
       // }
-      console.log("afterabo: ", err);
-      setAssets((prev)=>({...prev, isLoad: false, data:[]}));
-      //  setAssets((prev)=>({...prev, isLoad: false, error: err.message || 'failed fetch assets'}))
+      console.log("afterabort: ", err);
+       setAssets((prev)=>({...prev, isLoad: false, error: err.message || 'failed fetch assets'}))
     }
   }, [makeReq]);
 
@@ -78,20 +81,39 @@ const AssetsList = () => {
     console.log("res: ", response);
     }catch(err:any){
       console.log("err: ", err);
+    } finally{
+      fetchAssets();
     }
   }
 
+  const handleView =(open:boolean, data?:Asset|null)=>{
+    setView((prev)=>({
+      ...prev,
+      isOpen: open,
+      data: data ?? null
+    }))
+  }
+
   return (
+   
     <div className="space-y-5">
+    { view.isOpen ?
+      <AssetDetail
+        asset={view.data}
+        currentUser={user}
+        onBack={() => handleView(false, null)}
+      />
+      :
+       <>
         <div>
           <h1 className="text-2xl text-main-white">Assets Overview</h1>
         </div>
 
-        <div className="flex gap-3">
-          <div className="relative w-80">
+        <div className="flex flex-wrap gap-3">
+          <div className="relative w-full sm:w-80">
             <input
               type="text"
-              placeholder="Search by file name"
+              placeholder="Search by asset name"
               value={searchTerm}
               onChange={(e) => {
                 const value = e.target.value;
@@ -106,7 +128,7 @@ const AssetsList = () => {
           </div>
 
           <button className="bg-primary-500 hover:bg-primary-600 px-2 py-1 hover:cursor-pointer rounded-md 
-          font-normal flex items-center gap-1 transition-all active:scale-95"
+          font-normal flex items-center gap-1 transition-all active:scale-95 whitespace-nowrap"
           onClick={()=>handleUploadFile()}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -117,9 +139,9 @@ const AssetsList = () => {
         </div>
 
       <ErrorMsg msg={assets.error} />
-<div className="bg-card border border-border rounded-md overflow-hidden">
+      <div className="bg-card border border-border rounded-md overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[900px]">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left p-5 text-gray font-medium">Asset</th>
@@ -139,22 +161,24 @@ const AssetsList = () => {
               ) : (
                 assets.data?.map((asset) => (
                   <tr key={asset.id} className="hover:bg-hover transition-colors">
-                    <td className="p-5">
-                          <p className="text-sm text-muted">{asset.fileName}</p>
+                    <td className="p-5 max-w-xs">
+                          <p className="text-sm text-muted break-all">{asset.fileName}</p>
                     </td>
                     <td className="p-5 text-gray">{asset.owner?.name || '-'}</td>
-                    <td className="p-5 text-gray uppercase">{asset.fileType}</td>
+                    <td className="p-5 text-gray">{asset.mimeType}</td>
                     <td className="p-5 text-gray">
-                      {(asset.fileSize/1024/1024).toFixed(2)} MB
+                      {(asset.size/1024/1024).toFixed(2)} MB
                     </td>
                     <td className="p-5">
                       <StatusBadge status={asset.status} />
                     </td>
                     <td className="p-5 text-gray text-sm">
-                      {new Date(asset.uploadedAt).toLocaleDateString()}
+                      {asset.createdAt ? formatDate(asset.createdAt) : ""}
                     </td>
                     <td className="p-5">
-                      <button className="text-primary-400 hover:text-primary-300">View</button>
+                      <button className="text-primary-400 hover:cursor-pointer hover:text-primary-300"
+                      onClick={()=>handleView(true, asset)}
+                      >View</button>
                     </td>
                   </tr>
                 ))
@@ -164,6 +188,8 @@ const AssetsList = () => {
         </div>
       </div>
       
+    </>
+}
     </div>
   );
 };
