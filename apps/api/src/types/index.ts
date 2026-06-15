@@ -29,3 +29,12 @@ export interface DashboardStats{
     failedPer: number;
   };
 }
+
+export interface AssetUploadPayload{
+  assetId:number;
+  fileKey:string;
+  fileUrl:string;
+  mimeType:string;
+  ownerId:number;
+  versionNumber:number;
+}

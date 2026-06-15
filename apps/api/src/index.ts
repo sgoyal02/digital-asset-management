@@ -1,11 +1,12 @@
 
-import express from "express";
-import { prisma } from "./lib/prisma";
 import dotenv from 'dotenv';
-import app from "./app";
-
 dotenv.config();
-const PORT= process.env.PORT ||4000;
+import app from "./app";
+import { connectRabbitMq } from './queue/connection';
+import { thumbnailWorker } from './workers/thumbnail.worker';
+import { metadataDataWorker } from './workers/metadata.worker';
+
+const PORT = process.env.PORT || 4000;
 
 //--to check prisma- test
 // app.get('/api/users', async (req, res) => {
@@ -36,7 +37,18 @@ const PORT= process.env.PORT ||4000;
 //   }
 // });
 
+const bootstrap=async()=>{
+  try {
+    await connectRabbitMq();
+    await thumbnailWorker();
+    await metadataDataWorker();
 
-app.listen(PORT, () => {
-  console.log(`server run on port ${PORT}`);
-});
+    app.listen(PORT, () => {
+      console.log("server run on PORT: ", PORT);
+    });
+  } catch (err){
+    console.error("server fail run: ", err);
+    process.exit(1);
+  }
+}
+bootstrap();

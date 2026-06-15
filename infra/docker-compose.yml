@@ -26,6 +26,16 @@ services:
     volumes:
       - minio_data:/data
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    env_file:
+      - ./rabbitmq.env
+    ports:
+      - "5672:5672"    #app-connect
+      - "15672:15672"  #ui
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
   api:
     build:
       context: ..
@@ -39,6 +49,8 @@ services:
       - ../apps/api/.env
     depends_on:
       - postgres
+      - minio
+      - rabbitmq
     volumes:
       - ..:/app
       - /app/node_modules
@@ -64,3 +76,4 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  rabbitmq_data:
