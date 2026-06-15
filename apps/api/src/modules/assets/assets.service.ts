@@ -2,6 +2,7 @@ import { User } from "../../generated/prisma/client";
 import { minioClient } from "../../lib/minio";
 import { prisma } from "../../lib/prisma";
 import crypto from 'node:crypto';
+import { publishAssetUpload } from "../../queue/publisher";
 
 const BUCKET = "assets";
 
@@ -50,13 +51,14 @@ export class AssetService {
     try {
   await minioClient.putObject(BUCKET, objName, file.buffer, file.size, metaData);
 } catch (minioErr: any) {
-  console.error("❌ MINIO UPLOAD CRASHED:", minioErr);
-  throw new Error(`MinIO Upload Failed: ${minioErr.message || minioErr}`);
+  console.error("minio err: ", minioErr);
+  throw new Error(`minio upload fail: ${minioErr.message || minioErr}`);
 }
     //queries seq
    const res = await prisma.$transaction(async(tx:any) => {
+    let newAsset;
       if (!asset) {
-        asset = await tx.asset.create({
+        newAsset = await tx.asset.create({
         data: {
             fileName: originalName,
             fileUrl,
@@ -69,12 +71,7 @@ export class AssetService {
             departmentId:dbUser.departmentId ?? null,
             status: isAdmin ? 'APPROVED' : 'PENDING',
             versions: {
-              create: {
-                versionNumber,
-                fileUrl,
-                fileKey: objName,
-                size: fileSize,
-              },
+              create: {versionNumber,fileUrl,fileKey: objName,size: fileSize}
             },
           },
           include: {
@@ -91,7 +88,7 @@ export class AssetService {
             size: fileSize,
           },
         });
-        asset = await tx.asset.update({
+        newAsset = await tx.asset.update({
           where:{id: asset.id},
           data: {
             fileUrl, fileHash, isDupe,
@@ -103,16 +100,26 @@ export class AssetService {
       }
       await tx.usageLog.create({
         data: {
-          assetId: asset?.id,
+          assetId: newAsset?.id,
           userId: (dbUser.id),
           action: versionNumber=== 1? 'UPLOAD' : 'EDIT',
         },
       });
-      return asset;
+      return newAsset;
     });
 
     //queue call- file data, owner id
     console.log("ass: ", res);
+
+    publishAssetUpload({
+      assetId:res?.id,
+      fileKey:objName,
+      fileUrl,
+      mimeType,
+      ownerId:user.id,
+      versionNumber
+    });
+
     const jsonRes = JSON.parse(
       JSON.stringify(res,(_, value) =>
         typeof value === 'bigint' ? value.toString(): value
