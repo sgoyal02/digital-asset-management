@@ -22,6 +22,38 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 
+function FilePreview({fileUrl, mimeType, fileName }: { fileUrl: string; mimeType: string; fileName: string }) {
+  if (mimeType.startsWith("image/")) {
+    return (
+      <div className="flex items-center justify-center w-full h-full min-h-64 bg-secondary-700/50 rounded-xl overflow-hidden">
+        <img src={fileUrl} alt={fileName}
+          className="max-w-full max-h-96 object-contain rounded-lg"
+        />
+      </div>
+    );
+  }
+  if (mimeType.startsWith("video/")) {
+    return (
+      <div className="w-full rounded-xl overflow-hidden bg-secondary-700/50">
+        <video controls className="w-full max-h-80 rounded-xl" src={fileUrl} />
+      </div>
+    );
+  }
+  if (mimeType.startsWith("audio/")) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 w-full min-h-48 bg-secondary-700/50 rounded-xl p-6">
+        <div className="w-16 h-16 rounded-full bg-primary-600/20 border border-primary-500/30 flex items-center justify-center">
+          <svg className="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5v10M9 19.5v-3.75m0 3.75a1.803 1.803 0 01-1.803-1.803V15m1.803 4.5l-1.32.377A1.803 1.803 0 016 18.084V15" />
+          </svg>
+        </div>
+        <audio controls className="w-full" src={fileUrl} />
+      </div>
+    );
+  }
+  return null;
+}
+
 const AssetDetail=({
   asset, currentUser,
   onBack,
@@ -73,7 +105,7 @@ const AssetDetail=({
 
           <div className="lg:col-span-3 space-y-5">
             <Section title="Preview">
-                file preview
+                <FilePreview fileUrl={asset.fileUrl} mimeType={asset.mimeType} fileName={asset.fileName} >
              </Section>
 
             <Section title="Version history">
