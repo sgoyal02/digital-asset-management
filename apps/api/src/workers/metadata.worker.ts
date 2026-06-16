@@ -33,15 +33,16 @@ export const metadataDataWorker = async () => {
     console.log("msg meta: ", msg);
     if (!msg) return;
     const {assetId,fileKey,mimeType}:AssetUploadPayload=JSON.parse(msg.content.toString());
+    let tmpPath:string|null= null;
     try {
      let duration:number|null= null;
       if (mimeType.startsWith('video/')|| mimeType.startsWith('audio/')) {
         const stream = await minioClient.getObject(BUCKET, fileKey);
         const buffer = await streamToBuffer(stream);
-        const tmpPath = path.join(os.tmpdir(), `asset_${assetId}`); //c:/user/appdata/local/temp folder --windows
+        const ext = path.extname(fileKey);
+        tmpPath = path.join(os.tmpdir(), `asset_${assetId}${ext}`); //c:/user/appdata/local/temp folder --windows
         fs.writeFileSync(tmpPath, buffer);
         duration= await getDuration(tmpPath);
-        fs.unlinkSync(tmpPath);
       }
        await prisma.asset.update({
           where:{id:assetId},
@@ -52,6 +53,10 @@ export const metadataDataWorker = async () => {
     } catch (err) {
       console.error('worker meta fail:',err);
       ch.nack(msg, false, false);
+    }finally{
+      if (tmpPath && fs.existsSync(tmpPath)) {
+        fs.unlinkSync(tmpPath); //unlink evrytym
+      }
     }
   });
 };

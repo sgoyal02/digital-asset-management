@@ -17,6 +17,7 @@ const generateVideoThumb=async(fileKey:string,assetId: number, fileBuffer:Buffer
   const ext = path.extname(fileKey);
   const tmpInp = path.join(os.tmpdir(), `asset_${assetId}_input${ext}`);
   const tmpOut = path.join(os.tmpdir(), `asset_${assetId}_thumb.jpg`);
+  try{
   fs.writeFileSync(tmpInp, fileBuffer);
   await new Promise<void>((resolve, reject) => {
     Ffmpeg(tmpInp)
@@ -28,10 +29,11 @@ const generateVideoThumb=async(fileKey:string,assetId: number, fileBuffer:Buffer
   });
   if (!fs.existsSync(tmpOut))return null;
   const thumbBuffer= fs.readFileSync(tmpOut);
-
-  fs.unlinkSync(tmpInp);
-  fs.unlinkSync(tmpOut);
   return thumbBuffer;
+ }finally{
+  if (fs.existsSync(tmpInp)) fs.unlinkSync(tmpInp)
+  if (fs.existsSync(tmpOut)) fs.unlinkSync(tmpOut);
+  }
 }
 
 export const thumbnailWorker=async() => {
@@ -67,7 +69,8 @@ export const thumbnailWorker=async() => {
           'Content-Type': 'image/jpeg',
         });
         const protocol ='http'; //https to do for prod
-        const thumbUrl = `${protocol}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${THUMB_BUCKET}/${thumbKey}`;
+        // const thumbUrl = `${protocol}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${THUMB_BUCKET}/${thumbKey}`;
+        const thumbUrl = `${process.env.MINIO_PUBLIC_URL}/${THUMB_BUCKET}/${thumbKey}`;
         await prisma.asset.update({where:{id: assetId},data:{thumbnailUrl: thumbUrl}});
       }
       ch.ack(msg);
