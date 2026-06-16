@@ -4,5 +4,5 @@ packages:
 allowBuilds:
   '@prisma/engines': true
   esbuild: false
-  ffmpeg-static: set this to true or false
+  ffmpeg-static: false
   prisma: true
