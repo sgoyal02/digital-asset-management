@@ -18,7 +18,7 @@ export const connectRabbitMq=async(check=3):Promise<void> => {
     await channel.bindQueue(QUEUES.THUMBNAIL,EXCHANGES.ASSET_UPLOADED, '');
     await channel.bindQueue(QUEUES.METADATA,EXCHANGES.ASSET_UPLOADED, '');
     await channel.bindQueue(QUEUES.DUPLICATE,EXCHANGES.ASSET_UPLOADED, '');
-    await channel.bindQueue(QUEUES.NOTIFICATION,EXCHANGES.ASSET_UPLOADED, '');
+    await channel.bindQueue(QUEUES.EXPIRY,EXCHANGES.ASSET_UPLOADED, '');
     return;
     } catch (err) {
       console.log(`queu conncet try${i+1} fail, retry in 3sec`);

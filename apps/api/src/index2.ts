@@ -5,8 +5,6 @@ import app from "./app";
 import { connectRabbitMq } from './queue/connection';
 import { thumbnailWorker } from './workers/thumbnail.worker';
 import { metadataDataWorker } from './workers/metadata.worker';
-import { duplicateWorker } from './workers/duplicate.worker';
-import { expiryWorker } from './workers/expiry.worker';
 
 const PORT = process.env.PORT || 4000;
 
@@ -38,21 +36,6 @@ const PORT = process.env.PORT || 4000;
 //     });
 //   }
 // });
-
-const bootstrap=async()=>{
-  try {
-    await connectRabbitMq();
-    await thumbnailWorker();
-    await metadataDataWorker();
-    await duplicateWorker();
-    await expiryWorker();
-    
     app.listen(PORT, () => {
       console.log("server run on PORT: ", PORT);
     });
-  } catch (err){
-    console.error("server fail run: ", err);
-    process.exit(1);
-  }
-}
-bootstrap();

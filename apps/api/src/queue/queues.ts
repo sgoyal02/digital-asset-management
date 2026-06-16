@@ -2,7 +2,7 @@ export const QUEUES={
   THUMBNAIL:'asset.thumbnail',
   METADATA:'asset.metadata',
   DUPLICATE:'asset.duplicate',
-  NOTIFICATION:'asset.notification',
+  EXPIRY:'asset.expiry',
 }as const;
 export const EXCHANGES = {
   ASSET_UPLOADED: 'asset.uploaded',
