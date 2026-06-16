@@ -23,12 +23,25 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 
 function FilePreview({fileUrl, mimeType, fileName }: { fileUrl: string; mimeType: string; fileName: string }) {
+  const [imgErr, setImgErr] = useState(false);
   if (mimeType.startsWith("image/")) {
     return (
       <div className="flex items-center justify-center w-full h-full min-h-64 bg-secondary-700/50 rounded-xl overflow-hidden">
+        {imgErr ? (
+          <div className="flex flex-col items-center gap-2 text-muted">
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            <p className="text-sm">img not load</p>
+            <a href={fileUrl} target="_blank" rel="noreferrer" className="text-primary-400 text-xs underline">
+              open here
+            </a>
+          </div>
+        ) : (
         <img src={fileUrl} alt={fileName}
           className="max-w-full max-h-96 object-contain rounded-lg"
-        />
+          onError={() => setImgErr(true)}
+        />)}
       </div>
     );
   }
@@ -51,7 +64,7 @@ function FilePreview({fileUrl, mimeType, fileName }: { fileUrl: string; mimeType
       </div>
     );
   }
-  return null;
+  return (<div>to do</div>);
 }
 
 const AssetDetail=({
@@ -105,7 +118,8 @@ const AssetDetail=({
 
           <div className="lg:col-span-3 space-y-5">
             <Section title="Preview">
-                <FilePreview fileUrl={asset.fileUrl} mimeType={asset.mimeType} fileName={asset.fileName} >
+              {/* <h5>to do</h5> */}
+                <FilePreview fileUrl={asset.fileUrl} mimeType={asset.mimeType} fileName={asset.fileName}/>
              </Section>
 
             <Section title="Version history">
@@ -166,6 +180,9 @@ const AssetDetail=({
               <MetaRow label="Type" value={asset.mimeType} />
               <MetaRow label="Size" value={`${(asset.size/1024/1024).toFixed(2)} MB`} />
               <MetaRow label="Versions" value={asset.versions?.length ?? 1} />
+              {asset.duration && (
+                <MetaRow label="Duration" value={`${Math.round(asset.duration)}s`} />
+              )}
               <MetaRow
                 label="Expires"
                 value={
@@ -203,7 +220,7 @@ const AssetDetail=({
                 <textarea
                   value={reviewNote}
                   onChange={(e) => setReviewNote(e.target.value)}
-                  placeholder="Add a review note (optional)…"
+                  placeholder="review note.."
                   rows={3}
                   className="w-full bg-secondary-700/50 border border-border focus:border-border-focus focus:ring-1 focus:ring-focus-ring rounded-lg px-3 py-2.5 text-sm text-gray placeholder:text-muted resize-none outline-none transition-colors"
                 />
