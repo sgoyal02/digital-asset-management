@@ -160,4 +160,92 @@ export class AssetService {
         typeof value === 'bigint' ? value.toString(): value
       ));
   }
+
+  async getAssetById(assetId:number, userId: number, role:string) {
+  const asset = await prisma.asset.findUnique({
+    where:{id:assetId },
+    include: {
+      owner:{select:{name: true, department:{select:{name: true}}}},
+      versions:{ orderBy: { versionNumber: 'desc' } },
+      usageLogs: {
+        include:{user:{select:{name: true}}},
+        orderBy:{createdAt: 'desc'},
+        take: 10,
+      },
+    },
+  });
+  if (!asset) {
+    const err:any= new Error('asset not found');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (role=== 'USER' && asset.ownerId!== userId) {
+    const err: any = new Error('access denied to this asset');
+    err.statusCode = 403;
+    throw err;
+  }
+  //for manager
+  if (role=== 'MANAGER' && asset.ownerId !== userId) {
+    const team = await prisma.user.findMany({
+      where:{managerId: userId},
+      select:{id: true},
+    });
+    const teamIds = team.map((u) => u.id);
+    if (!teamIds.includes(asset.ownerId)) {
+      const err: any = new Error('access denie- not team asset');
+      err.statusCode = 403;
+      throw err;
+    }
+  }
+  //admin
+  return JSON.parse(JSON.stringify(asset,(_,val) =>
+    typeof val==='bigint'? val.toString(): val
+  ));
+}
+
+  async reviewAsset(assetId:number,reviewerId: number,role: string, action:'APPROVED'|'REJECTED') {
+    const asset= await prisma.asset.findUnique({where:{id:assetId}});
+    if (!asset) {
+      const err:any = new Error('asset not found');
+      err.statusCode = 404;
+      throw err;
+    }
+    if (role=== 'USER') {
+      const err: any = new Error('user can not review:access denied');
+      err.statusCode = 403;
+      throw err;
+    }
+    if (asset.ownerId=== reviewerId) { //own file not review
+      const err: any = new Error('cannot review own asset');
+      err.statusCode = 403;
+      throw err;
+    }
+    
+    //mangaer-team review
+    if (role=== 'MANAGER') {
+      const owner= await prisma.user.findUnique({ where:{id:asset.ownerId}});
+      if (owner?.managerId!== reviewerId) {
+        const err: any = new Error('not team asset:access denied');
+        err.statusCode = 403;
+        throw err;
+      }
+    }
+    //status basis
+    if (['APPROVED','REJECTED','ARCHIVED'].includes(asset.status)) {
+      const err:any= new Error('based on asset status- can not review');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const updated = await prisma.asset.update({
+      where:{id:assetId},
+      data:{status:action},
+    });
+    await prisma.usageLog.create({
+      data:{assetId,userId: reviewerId,action: 'EDIT'},
+    });
+    return JSON.parse(JSON.stringify(updated,(_,v) =>
+      typeof v=== 'bigint'? v.toString(): v
+    ));
+  }
 }

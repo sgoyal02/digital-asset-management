@@ -5,7 +5,7 @@ import { sendError, sendSuccess } from '../../response';
 const authService = new AuthService();
 export class AuthController{
   async login(req: Request,res: Response) {
-    console.log("login body: ", req.body);
+    // console.log("login body: ", req.body);
     try {
       const {email,password} = req.body;
       if (!email || !password) {

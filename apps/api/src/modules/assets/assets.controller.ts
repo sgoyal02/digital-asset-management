@@ -18,6 +18,23 @@ async getAssets(req:AuthReq, res:Response){
     }
 }
 
+async getAssetById(req:AuthReq, res:Response) {
+  console.log("get asset by id req api: ", req);
+  try {
+    const userId= req.user!.id;
+    const role= req.user!.role;
+    const assetId= Number(req.params.id);
+    if (isNaN(assetId)) {
+      return sendError(res, 'Invalid asset id', 400);
+    }
+    const asset = await assetService.getAssetById(assetId, userId, role);
+    sendSuccess(res, asset, 'asset detail fetch success');
+  } catch (err: any) {
+    const code = err.statusCode || 500;
+    return sendError(res, err.message, code);
+  }
+}
+
 async uploadAsset(req: AuthReq, res:Response) {
   try {
     if (!req.file) return sendError(res, "No file attached", 400);
@@ -32,4 +49,23 @@ async uploadAsset(req: AuthReq, res:Response) {
     return sendError(res, err.message, code);
   }
 }
+
+async reviewAsset(req:AuthReq, res: Response) {
+  console.log("review re api: " ,req);
+    try {
+      const reviewerId= req.user!.id;
+      const role= req.user!.role;
+      const assetId= Number(req.params.id);
+      const {action}= req.body;
+      if (!['APPROVED', 'REJECTED'].includes(action)) {
+        return sendError(res, 'action not valid', 400);
+      }
+      const updated = await assetService.reviewAsset(assetId,reviewerId, role, action);
+      console.log("updated: ", updated);
+      sendSuccess(res,updated,`asset ${action.toLowerCase()} success`);
+    } catch(err:any) {
+      const code= err.statusCode || 500;
+      return sendError(res, err.message, code);
+    }
+  }
 }
