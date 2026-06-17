@@ -127,7 +127,7 @@ const Dashboard = () => {
                   <span className="font-medium text-main-white">{stats.data?.processStatus.failedPer}</span>
                 </div>
                 <div className="h-2 bg-surface rounded-full overflow-hidden">
-                  <div className={`h-2 bg-error rounded-full w-${stats.data?.processStatus.failedPer ||0}`} />
+                  <div className={`h-2 bg-error rounded-full  ${!stats.data?.processStatus.failedPer ? 'w-0' : `w-${(stats.data?.processStatus.failedPer ||0)}`}`} />
                 </div>
               </div>
             </div>

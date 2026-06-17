@@ -6,6 +6,7 @@ import ErrorMsg from '../../components/ErrorMsg';
 import StatusBadge from '../../components/StatusBadge';
 import { useAuth } from '../../hooks/AuthContext';
 import AssetDetail from './AssetDetail';
+import { useNavigate } from 'react-router-dom';
 
 const AssetsList = () => {
   const { makeReq } = useApiService();
@@ -13,6 +14,7 @@ const AssetsList = () => {
   const [assets, setAssets] = useState<{data:Asset[], isLoad:boolean, error:string|null}>({data:[], isLoad: false, error:null});
   const [searchTerm, setSearchTerm] = useState('');
   const [view, setView] = useState<{isOpen:boolean, data:Asset|null}>({isOpen: false, data:null});
+  const navigate= useNavigate();
   
   const fetchAssets = useCallback(async(search: string = '', signal?:AbortSignal) => {
    setAssets((prev)=>({...prev, isLoad: true, error: null}))
@@ -98,11 +100,12 @@ const AssetsList = () => {
    
     <div className="space-y-5">
     { view.isOpen ?
-      <AssetDetail
-        asset={view.data}
-        currentUser={user}
-        onBack={() => handleView(false, null)}
-      />
+      // <AssetDetail
+      //   asset={view.data}
+      //   currentUser={user}
+      //   onBack={() => handleView(false, null)}
+      // />
+      null
       :
        <>
         <div>
@@ -177,7 +180,8 @@ const AssetsList = () => {
                     </td>
                     <td className="p-5">
                       <button className="text-primary-400 hover:cursor-pointer hover:text-primary-300"
-                      onClick={()=>handleView(true, asset)}
+                      // onClick={()=>handleView(true, asset)}
+                      onClick={() => navigate(`/dashboard//assets/${asset.id}`)}
                       >View</button>
                     </td>
                   </tr>

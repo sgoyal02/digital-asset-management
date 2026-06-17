@@ -1,7 +1,11 @@
 
-import { useState } from "react";
-import { AssetDetailProps, formatDate } from "../../utils/types";
+import { useEffect, useState } from "react";
+import { Asset, AssetDetailProps, formatDate } from "../../utils/types";
 import StatusBadge from "../../components/StatusBadge";
+import { useNavigate, useParams } from "react-router-dom";
+import { useApiService } from "../../services/useApiService";
+import { useAuth } from "../../hooks/AuthContext";
+import ErrorMsg from "../../components/ErrorMsg";
 
 function MetaRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -67,23 +71,75 @@ function FilePreview({fileUrl, mimeType, fileName }: { fileUrl: string; mimeType
   return (<div>to do</div>);
 }
 
-const AssetDetail=({
-  asset, currentUser,
-  onBack,
-}: AssetDetailProps) =>{
-  const [reviewNote, setReviewNote] = useState("");
-  const [isReviewing, setIsReviewing] = useState(false);
+const AssetDetail=() =>{
+  const param= useParams();
+  console.log("id: ", param.id);
+  const [isReview, setReview] = useState<{process:boolean, err:string|null}>({process: false, err:null});
+  const [asset, setAsset] = useState<{data:Asset|null, isLoad:boolean, err:string|null}>({data:null, isLoad: false, err:null});
+  const { makeReq } = useApiService();
+  const navigate= useNavigate();
+  const {user:currentUser}= useAuth();
+  console.log("curruser: ", currentUser);
+  
+  useEffect(()=>{
+    fetchAssetDetail();
+  },[]);
 
-  const isOwnAsset = asset.ownerId === currentUser?.id;
-  const canReview =(currentUser?.role === "ADMIN" || currentUser?.role === "MANAGER") &&
-            !(currentUser?.role === "MANAGER" && isOwnAsset) && !["APPROVED", "REJECTED", "ARCHIVED"].includes(asset.status);
+  const fetchAssetDetail=async()=>{
+     setAsset((prev)=>({...prev, isLoad: true}));
+    try{
+      const res= await makeReq({
+        method:'GET',
+        url: `/assets/${param.id}`
+      });
+      setAsset((prev)=>({...prev, isLoad: false,
+         data: res?.data || res
+        }));
+    } catch (err: any) {
+      console.log("catchEr: ", err);
+      setAsset((prev)=>({...prev, isLoad: false, err: err.message|| 'failed fetch asset detail'}))
+    }
+  }
+  
+  const isOwnAsset = asset.data?.ownerId === currentUser?.id;
+  const canReview =asset.data && (currentUser?.role !=="USER") && !isOwnAsset &&
+                  !["APPROVED", "REJECTED", "ARCHIVED"].includes(asset.data?.status);
 
-  const expiryDaysLeft = asset.expiryDate
-    ? Math.ceil((new Date(asset.expiryDate).getTime() - Date.now()) / 86400000)
-    : null;
+  const expiryDaysLeft = asset.data?.expiryDate? 
+                  Math.ceil((new Date(asset.data?.expiryDate).getTime() - Date.now()) / 86400000): null;
+
+  const onBack=()=>{
+    navigate('/dashboard/assets');
+  }
+
+  const handleReview= async(action:"APPROVED"|"REJECTED") => {
+    setReview((prev)=>({...prev, process: true, err:null}))
+    try {
+      const res = await makeReq({
+        method: 'PATCH',
+        url: `/assets/${param.id}/review`,
+        data: {action},
+      });
+      const updated = res?.data || res;
+      // setAsset((prev: any) => ({ ...prev, data: updated }));
+      onBack(); //main list--? or same ui- vNum check
+    } catch (err: any) {
+      setReview((prev)=>({...prev, err:err.message || "review action fail"}))
+    } finally {
+      setReview((prev)=>({...prev, process: false}))
+    }
+  };
 
   return (
     <div className="min-h-screen bg-base text-main-white">
+      {asset.isLoad ?
+      <div className="text-center py-12 text-gray-400">Loading detail...</div>
+      : !!asset.err ?
+        <ErrorMsg msg={asset.err}/>
+      : !asset.data ?
+        <div className="text-center py-12 text-gray-400">asset detail not found.</div>
+      :
+      <div>
       <div className="sticky top-0 z-10 bg-header border-b border-border backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-4">
           <button
@@ -96,13 +152,14 @@ const AssetDetail=({
           </button>
           <div className="flex-1 min-w-0">
             <p className="text-xs text-muted mb-0.5 uppercase tracking-wider">Asset detail</p>
-            <h1 className="text-base font-medium text-main-white truncate">{asset.fileName}</h1>
+            <h1 className="text-base font-medium text-main-white truncate">{asset.data?.fileName}</h1>
           </div>
           <span className={`px-3 py-1 rounded-full text-xs font-medium`}>
-              <StatusBadge status={asset.status} />
+              <StatusBadge status={asset.data?.status} />
           </span>
           <a
-            // href={asset.fileUrl}
+            href={asset.data?.fileUrl}
+            target="_blank"
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-700 hover:bg-primary-600 text-sm text-main-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,14 +175,13 @@ const AssetDetail=({
 
           <div className="lg:col-span-3 space-y-5">
             <Section title="Preview">
-              {/* <h5>to do</h5> */}
-                <FilePreview fileUrl={asset.fileUrl} mimeType={asset.mimeType} fileName={asset.fileName}/>
+                <FilePreview fileUrl={asset.data?.fileUrl} mimeType={asset.data?.mimeType} fileName={asset.data?.fileName}/>
              </Section>
 
             <Section title="Version history">
-              {asset.versions?.length > 0 ? (
+              {asset.data?.versions?.length > 0 ? (
                 <div className="space-y-2">
-                  {[...asset.versions].reverse().map((v: any) => (
+                  {[...asset.data?.versions].reverse().map((v: any) => (
                     <div
                       key={v.id}
                       className="flex items-center justify-between gap-4 px-4 py-3 rounded-lg bg-secondary-700/40 border border-border hover:border-primary-500/30 transition-colors group"
@@ -137,9 +193,10 @@ const AssetDetail=({
                         <span className="text-sm text-muted">{formatDate(v.createdAt)}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-muted">{(asset.size/1024/1024).toFixed(2)} MB</span>
+                        <span className="text-xs text-muted">{asset.data?.size ? (asset.data?.size/1024/1024).toFixed(2) : 0} MB</span>
                         <a
-                        //   href={v.fileUrl}
+                          href={v.fileUrl}
+                          target="_blank"
                           className="opacity-0 group-hover:opacity-100 transition-opacity text-primary-400
                            hover:text-primary-300"
                           title="Download this version"
@@ -156,39 +213,71 @@ const AssetDetail=({
                 <p className="text-muted text-sm text-center py-4">no versions yet.</p>
               )}
             </Section>
+            {canReview && (
+              <div className="rounded-xl border border-primary-500/20 bg-primary-900/20 p-5 space-y-4">
+                <h3 className="text-sm font-medium text-primary-300 uppercase tracking-widest">Review</h3>
+                {isReview.err && (
+                  <p className="text-error text-xs">{isReview.err}</p>
+                )}
+                <div className="flex gap-3">
+                  <button
+                    disabled={isReview.process}
+                    onClick={()=>handleReview("APPROVED")}
+                    className="flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg bg-success/50 hover:bg-success hover:cursor-pointer border border-success/30 text-white text-sm 
+                    font-sm disabled:opacity-50"
+                  >
+                   <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                    Approve
+                  </button>
+                  <button
+                    disabled={isReview.process}
+                    onClick={()=>handleReview("REJECTED")}
+                    className="flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg bg-error/50 hover:bg-error border border-error/30 
+                    text-white text-sm font-sm disabled:opacity-50 hover:cursor-pointer"
+                  >
+                    <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                    Reject
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-2 space-y-5">
             <Section title="Owner">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-primary-700/40 border border-primary-500/25 flex items-center justify-center text-primary-300 font-medium text-sm shrink-0">
-                  {asset.owner?.name?.charAt(0)?.toUpperCase()?? "-"}
+                  {asset.data?.owner?.name?.charAt(0)?.toUpperCase()?? "-"}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray">{asset.owner?.name?? "Unknown"}</p>
+                  <p className="text-sm font-medium text-gray">{asset.data?.owner?.name?? "Unknown"}</p>
                   <p className="text-xs text-muted">
-                    {asset.owner?.department?.name ?? "No department"}
+                    {asset.data?.owner?.department?.name ?? "No department"}
                   </p>
                 </div>
               </div>
-              <MetaRow label="Asset ID" value={`#${asset.id}`} />
-              <MetaRow label="Uploaded" value={formatDate(asset.createdAt)} />
+              <MetaRow label="Asset ID" value={`#${asset.data?.id}`} />
+              <MetaRow label="Uploaded" value={formatDate(asset.data?.createdAt)} />
             </Section>
 
             <Section title="File details">
-              <MetaRow label="File name" value={asset.fileName} />
-              <MetaRow label="Type" value={asset.mimeType} />
-              <MetaRow label="Size" value={`${(asset.size/1024/1024).toFixed(2)} MB`} />
-              <MetaRow label="Versions" value={asset.versions?.length ?? 1} />
-              {asset.duration && (
-                <MetaRow label="Duration" value={`${Math.round(asset.duration)}s`} />
+              <MetaRow label="File name" value={asset.data?.fileName} />
+              <MetaRow label="Type" value={asset.data?.mimeType} />
+              <MetaRow label="Size" value={`${(asset.data?.size/1024/1024).toFixed(2)} MB`} />
+              <MetaRow label="Versions" value={asset.data?.versions?.length ?? 1} />
+              {asset.data?.duration && (
+                <MetaRow label="Duration" value={`${Math.round(asset.data?.duration)}s`} />
               )}
               <MetaRow
                 label="Expires"
                 value={
-                  asset.expiryDate ? (
+                  asset.data?.expiryDate ? (
                     <span className={expiryDaysLeft !== null && expiryDaysLeft <= 7 ? "text-error" : ""}>
-                      {formatDate(asset.expiryDate)}
+                      {formatDate(asset.data?.expiryDate)}
                       {expiryDaysLeft !== null && expiryDaysLeft > 0 && (
                         <span className="text-muted ml-1">({expiryDaysLeft}d)</span>
                       )}
@@ -199,64 +288,33 @@ const AssetDetail=({
                <MetaRow
                 label="Archived"
                 value={
-                  <span className={asset.isArchived ? "text-muted" : "text-success text-xs"}>
-                    {asset.isArchived ? "Yes" : "No"}
+                  <span className={asset.data?.isArchived ? "text-muted" : "text-success text-sm"}>
+                    {asset.data?.isArchived ? "Yes" : "No"}
                   </span>
                 }
               />
               <MetaRow
                 label="Duplicate"
                 value={
-                  <span className={asset.isDupe ? "text-warning text-xs" : "text-muted text-xs"}>
-                    {asset.isDupe ? "Flagged" : "Clean"}
+                  <span className={asset.data?.isDupe ? "text-warning text-sm" : "text-sm"}>
+                    {asset.data?.isDupe ? "Flagged" : "Clean"}
                   </span>
                 }
               />
             </Section>
 
-            {canReview && (
-              <div className="rounded-xl border border-primary-500/20 bg-primary-900/20 p-5 space-y-4">
-                <h3 className="text-sm font-medium text-primary-300 uppercase tracking-widest">Review</h3>
-                <textarea
-                  value={reviewNote}
-                  onChange={(e) => setReviewNote(e.target.value)}
-                  placeholder="review note.."
-                  rows={3}
-                  className="w-full bg-secondary-700/50 border border-border focus:border-border-focus focus:ring-1 focus:ring-focus-ring rounded-lg px-3 py-2.5 text-sm text-gray placeholder:text-muted resize-none outline-none transition-colors"
-                />
-                <div className="flex gap-3">
-                  <button
-                    disabled={isReviewing}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-success/15 hover:bg-success/25 border border-success/30 text-success text-sm font-medium transition-colors disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                    Approve
-                  </button>
-                  <button
-                    disabled={isReviewing}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-error/15 hover:bg-error/25 border border-error/30 text-error text-sm font-medium transition-colors disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Reject
-                  </button>
-                </div>
-              </div>
-            )}
-
             {currentUser?.role === "ADMIN" && (
               <Section title="Storage">
                 <MetaRow label="Bucket key" value={
-                  <span className="font-mono text-xs break-all text-muted">{asset.fileKey}</span>
+                  <span className="font-mono text-xs break-all text-muted">{asset.data?.fileKey}</span>
                 } />
               </Section>
             )}
           </div>
         </div>
       </div>
+      </div>
+      }
     </div>
   );
 }

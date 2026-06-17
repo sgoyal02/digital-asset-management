@@ -65,10 +65,16 @@ export interface Asset {
   ownerId: number;
   owner?: {
     name: string;
+    department: {name:string};
   };
   createdAt: string;
   updatedAt?: string;
-  expiryDate?:string
+  expiryDate?:string,
+  versions:[],
+  duration:number;
+  isArchived:boolean;
+  isDupe:boolean;
+  fileKey:string;
 }
 
 export interface AssetDetailProps {
