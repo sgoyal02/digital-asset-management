@@ -7,6 +7,7 @@ import { thumbnailWorker } from './workers/thumbnail.worker';
 import { metadataDataWorker } from './workers/metadata.worker';
 import { duplicateWorker } from './workers/duplicate.worker';
 import { expiryWorker } from './workers/expiry.worker';
+import { minioClient, setPublicBuckets } from './lib/minio';
 
 const PORT = process.env.PORT || 4000;
 
@@ -41,6 +42,7 @@ const PORT = process.env.PORT || 4000;
 
 const bootstrap=async()=>{
   try {
+    await setPublicBuckets();  
     await connectRabbitMq();
     await thumbnailWorker();
     await metadataDataWorker();
@@ -50,6 +52,7 @@ const bootstrap=async()=>{
     app.listen(PORT, () => {
       console.log("server run on PORT: ", PORT);
     });
+    const policy = await minioClient.getBucketPolicy('thumbnails');
   } catch (err){
     console.error("server fail run: ", err);
     process.exit(1);

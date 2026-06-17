@@ -30,7 +30,6 @@ export const metadataDataWorker = async () => {
   const ch = getChannel();
   ch.prefetch(1);
   ch.consume(QUEUES.METADATA, async (msg) => {
-    console.log("msg meta: ", msg);
     if (!msg) return;
     const {assetId,fileKey,mimeType}:AssetUploadPayload=JSON.parse(msg.content.toString());
     let tmpPath:string|null= null;

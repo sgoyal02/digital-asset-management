@@ -22,6 +22,5 @@ export const setPublicBuckets = async () => {
         Resource: [`arn:aws:s3:::${b}/*`],
       }],
     }));
-    console.log("public read bkt: ", b);
   }
 };

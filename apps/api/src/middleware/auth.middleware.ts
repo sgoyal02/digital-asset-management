@@ -11,7 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 export const authMiddleware = (req: AuthReq, res: Response, next: NextFunction) => {
 
     const authHeader = req.headers['authorization'];
-    console.log("authHead: ", authHeader);
+    // console.log("authHead: ", authHeader);
     const token = authHeader?.split(' ')[1];
     if (!token) {
         return sendError(res, 'access token missing', 401);
