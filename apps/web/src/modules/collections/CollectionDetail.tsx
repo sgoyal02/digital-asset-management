@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { CollectionAsset, CollectionDetail, ModalMode, OtherCollection } from "../../utils/types";
+import { CollectionAsset, CollectionDetail, ModalMode } from "../../utils/types";
 import { useApiService } from "../../services/useApiService";
-
 
 const CollectionDetail=() =>{
   const param= useParams();
@@ -10,7 +9,6 @@ const CollectionDetail=() =>{
   const [collection, setCollection]= useState<{isLoad:boolean, err: string|null, cData:CollectionDetail|null, assets:CollectionAsset[]}>
   ({isLoad: false, cData:null, assets:[], err:null});
   const [modal, setModal] = useState<{state:ModalMode, isSubmit: boolean}>({state:null, isSubmit:false});
-  const [otherCollections, setOtherCollections] = useState<OtherCollection[]>([]);
   const {makeReq} = useApiService();
   const navigate= useNavigate();
 
@@ -32,14 +30,6 @@ const CollectionDetail=() =>{
     getDetail();
   }, [param.id]);
 
-
-  const onAction = async (cId: number) => {
-    if (!modal) return;
-    setModal((prev)=>({...prev, isSubmit: true}))
-    setTimeout(()=>{
-   setModal((prev)=>({...prev, isSubmit: false}))
-    },2000);
-  };
 
   const onBack=()=>{
     navigate('/dashboard/collections');
@@ -98,7 +88,7 @@ const CollectionDetail=() =>{
 
               <div className="flex gap-2">
                 <button className="flex-1 text-xs py-1.5 rounded-md bg-secondary-700/50 hover:bg-secondary-600/50 text-gray transition-colors">
-                  Move </button>
+                  Move</button>
                 <button className="flex-1 text-xs py-1.5 rounded-md bg-secondary-700/50 hover:bg-secondary-600/50 text-gray transition-colors"
                 >Copy</button>
               </div>
