@@ -19,7 +19,6 @@ async getAssets(req:AuthReq, res:Response){
 }
 
 async getAssetById(req:AuthReq, res:Response) {
-  console.log("get asset by id req api: ", req);
   try {
     const userId= req.user!.id;
     const role= req.user!.role;
@@ -51,7 +50,6 @@ async uploadAsset(req: AuthReq, res:Response) {
 }
 
 async reviewAsset(req:AuthReq, res: Response) {
-  console.log("review re api: " ,req);
     try {
       const reviewerId= req.user!.id;
       const role= req.user!.role;

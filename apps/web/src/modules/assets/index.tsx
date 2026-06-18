@@ -4,13 +4,10 @@ import { useApiService } from '../../services/useApiService';
 import { formatDate, type Asset } from '../../utils/types';
 import ErrorMsg from '../../components/ErrorMsg';
 import StatusBadge from '../../components/StatusBadge';
-import { useAuth } from '../../hooks/AuthContext';
-import AssetDetail from './AssetDetail';
 import { useNavigate } from 'react-router-dom';
 
 const AssetsList = () => {
   const { makeReq } = useApiService();
-  const {user}= useAuth();
   const [assets, setAssets] = useState<{data:Asset[], isLoad:boolean, error:string|null}>({data:[], isLoad: false, error:null});
   const [searchTerm, setSearchTerm] = useState('');
   const [view, setView] = useState<{isOpen:boolean, data:Asset|null}>({isOpen: false, data:null});
@@ -88,26 +85,9 @@ const AssetsList = () => {
     }
   }
 
-  const handleView =(open:boolean, data?:Asset|null)=>{
-    setView((prev)=>({
-      ...prev,
-      isOpen: open,
-      data: data ?? null
-    }))
-  }
-
   return (
-   
+
     <div className="space-y-5">
-    { view.isOpen ?
-      // <AssetDetail
-      //   asset={view.data}
-      //   currentUser={user}
-      //   onBack={() => handleView(false, null)}
-      // />
-      null
-      :
-       <>
         <div>
           <h1 className="text-2xl text-main-white">Assets Overview</h1>
         </div>
@@ -180,8 +160,7 @@ const AssetsList = () => {
                     </td>
                     <td className="p-5">
                       <button className="text-primary-400 hover:cursor-pointer hover:text-primary-300"
-                      // onClick={()=>handleView(true, asset)}
-                      onClick={() => navigate(`/dashboard//assets/${asset.id}`)}
+                      onClick={() => navigate(`/dashboard/assets/${asset.id}`)}
                       >View</button>
                     </td>
                   </tr>
@@ -191,9 +170,6 @@ const AssetsList = () => {
           </table>
         </div>
       </div>
-      
-    </>
-}
     </div>
   );
 };

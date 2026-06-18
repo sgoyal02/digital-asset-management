@@ -51,7 +51,6 @@ export class AssetService {
     try {
   await minioClient.putObject(BUCKET, objName, file.buffer, file.size, metaData);
 } catch (minioErr: any) {
-  console.error("minio err: ", minioErr);
   throw new Error(`minio upload fail: ${minioErr.message || minioErr}`);
 }
     //queries seq

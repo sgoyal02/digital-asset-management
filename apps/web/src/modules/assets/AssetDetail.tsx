@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Asset, AssetDetailProps, formatDate } from "../../utils/types";
+import { Asset, formatDate } from "../../utils/types";
 import StatusBadge from "../../components/StatusBadge";
 import { useNavigate, useParams } from "react-router-dom";
 import { useApiService } from "../../services/useApiService";
@@ -130,6 +130,20 @@ const AssetDetail=() =>{
     }
   };
 
+  const handleDownload = async (fileName:string|undefined, fileUrl:string|undefined) => {
+  if(!fileUrl) return;
+  const res = await fetch(fileUrl);
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName|| "file";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
   return (
     <div className="min-h-screen bg-base text-main-white">
       {asset.isLoad ?
@@ -157,16 +171,16 @@ const AssetDetail=() =>{
           <span className={`px-3 py-1 rounded-full text-xs font-medium`}>
               <StatusBadge status={asset.data?.status} />
           </span>
-          <a
-            href={asset.data?.fileUrl}
-            target="_blank"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-700 hover:bg-primary-600 text-sm text-main-white transition-colors"
+          <button
+            onClick={()=>handleDownload(asset.data?.fileName,asset.data?.fileUrl)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-700
+            hover:cursor-pointer hover:bg-primary-600 text-sm text-main-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             Download
-          </a>
+          </button>
         </div>
       </div>
 
@@ -199,7 +213,7 @@ const AssetDetail=() =>{
                           target="_blank"
                           className="opacity-0 group-hover:opacity-100 transition-opacity text-primary-400
                            hover:text-primary-300"
-                          title="Download this version"
+                          title="download version"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
