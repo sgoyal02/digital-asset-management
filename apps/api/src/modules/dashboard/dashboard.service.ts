@@ -28,12 +28,14 @@ export class DashboardService{
 
     //filename, size same --dupes
     const dupesGroup = await prisma.asset.groupBy({
-      by:['fileName','size'],
-      _count:{id:true},  //--file count in each grp
+      by: ['fileHash'],
+       _count:{id:true},  //--file count in each grp
       having:{id:{_count:{gt: 1}}}, //take grp with >1 file count
-      where:role !== 'ADMIN'?{ownerId:userId}:{}
-    });
-    const dupes = dupesGroup.length;
+     where: {fileHash:{not:null},
+        ...(role !== 'ADMIN' && { ownerId: userId }),
+      },
+});
+const dupes = dupesGroup.length;
 
     const processing= await prisma.asset.groupBy({
       by:['status'], _count:{id:true},
