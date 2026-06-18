@@ -117,6 +117,7 @@ model Collection{
   id Int @id @default(autoincrement())
   name String
   description String?
+  isShared Boolean @default(false)
   ownerId Int
   createdAt DateTime @default(now())
   owner User @relation(fields: [ownerId], references: [id])
