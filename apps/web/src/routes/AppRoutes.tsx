@@ -6,6 +6,8 @@ import Redirect from "./Redirect";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import AssetsOverview from "../pages/AssetsOverview";
 import AssetDetail from "../modules/assets/AssetDetail";
+import Collections from "../pages/Collections";
+import CollectionDetail from "../modules/collections/CollectionDetail";
 
 
 export default function AppRoutes () {
@@ -18,6 +20,8 @@ export default function AppRoutes () {
                         <Route index element={<Dashboard/>}/>
                         <Route path={'assets'} element={<AssetsOverview/>}/>
                         <Route path={'assets/:id'} element={<AssetDetail/>}/>
+                        <Route path={'collections'} element={<Collections/>}/>
+                         <Route path={'collections/:id'} element={<CollectionDetail/>}/>
                     </Route>
                 </Route>
             </Routes>

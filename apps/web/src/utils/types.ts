@@ -77,10 +77,28 @@ export interface Asset {
   fileKey:string;
 }
 
-export interface AssetDetailProps {
-  asset: any;
-  currentUser: User|null;
-  // onApprove?: (id: number) => void;
-  // onReject?: (id: number) => void;
-  onBack?: () => void;
+export interface Collection{
+  id:number;
+  name:string;
+  description?:string|null;
+  isShared:boolean;
+  createdAt:string;
+  _count?:{assets:number};
+  owner?: {name:string};
+}
+
+export type ModalMode={type:"move"|"copy";assetId: number}|null;
+export interface CollectionAsset {
+  id:number;
+  fileName:string;
+  mimeType:string;
+  size:string;
+  status:string;
+  thumbnailUrl?: string| null;
+}
+export interface CollectionDetail {
+  id: number;
+  name: string;
+  description?: string | null;
+  isShared: boolean;
 }
