@@ -18,7 +18,7 @@ function MetaRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
+    <div className="rounded-md border border-border bg-card p-3">
       <h3 className="text-sm font-medium text-primary-300 uppercase tracking-widest mb-4">{title}</h3>
       {children}
     </div>
@@ -30,7 +30,7 @@ function FilePreview({fileUrl, mimeType, fileName }: { fileUrl: string; mimeType
   const [imgErr, setImgErr] = useState(false);
   if (mimeType.startsWith("image/")) {
     return (
-      <div className="flex items-center justify-center w-full h-full min-h-64 bg-secondary-700/50 rounded-xl overflow-hidden">
+      <div className="flex items-center justify-center w-full h-full min-h-64 bg-secondary-700/50 rounded-md overflow-hidden">
         {imgErr ? (
           <div className="flex flex-col items-center gap-2 text-muted">
             <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,7 +43,7 @@ function FilePreview({fileUrl, mimeType, fileName }: { fileUrl: string; mimeType
           </div>
         ) : (
         <img src={fileUrl} alt={fileName}
-          className="max-w-full max-h-96 object-contain rounded-lg"
+          className="max-w-full max-h-96 object-contain rounded-md"
           onError={() => setImgErr(true)}
         />)}
       </div>
@@ -51,14 +51,14 @@ function FilePreview({fileUrl, mimeType, fileName }: { fileUrl: string; mimeType
   }
   if (mimeType.startsWith("video/")) {
     return (
-      <div className="w-full rounded-xl overflow-hidden bg-secondary-700/50">
-        <video controls className="w-full max-h-80 rounded-xl" src={fileUrl} />
+      <div className="w-full rounded-md overflow-hidden bg-secondary-700/50">
+        <video controls className="w-full max-h-80 rounded-md" src={fileUrl} />
       </div>
     );
   }
   if (mimeType.startsWith("audio/")) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 w-full min-h-48 bg-secondary-700/50 rounded-xl p-6">
+      <div className="flex flex-col items-center justify-center gap-4 w-full min-h-48 bg-secondary-700/50 rounded-md p-6">
         <div className="w-16 h-16 rounded-full bg-primary-600/20 border border-primary-500/30 flex items-center justify-center">
           <svg className="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5v10M9 19.5v-3.75m0 3.75a1.803 1.803 0 01-1.803-1.803V15m1.803 4.5l-1.32.377A1.803 1.803 0 016 18.084V15" />
@@ -73,7 +73,7 @@ function FilePreview({fileUrl, mimeType, fileName }: { fileUrl: string; mimeType
 
 const AssetDetail=() =>{
   const param= useParams();
-  console.log("id: ", param.id);
+  console.log("id: ", param.id, param.collectionId);
   const [isReview, setReview] = useState<{process:boolean, err:string|null}>({process: false, err:null});
   const [asset, setAsset] = useState<{data:Asset|null, isLoad:boolean, err:string|null}>({data:null, isLoad: false, err:null});
   const { makeReq } = useApiService();
@@ -109,6 +109,9 @@ const AssetDetail=() =>{
                   Math.ceil((new Date(asset.data?.expiryDate).getTime() - Date.now()) / 86400000): null;
 
   const onBack=()=>{
+    if(param.collectionId)
+    navigate(`/dashboard/collections/${param.collectionId}`);
+    else
     navigate('/dashboard/assets');
   }
 
@@ -154,11 +157,11 @@ const AssetDetail=() =>{
         <div className="text-center py-12 text-gray-400">asset detail not found.</div>
       :
       <div>
-      <div className="sticky top-0 z-10 bg-header border-b border-border backdrop-blur-sm">
+      <div className="sticky top-0 z-10 bg-header border-border backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-4">
           <button
             onClick={onBack}
-            className="p-2 rounded-lg text-muted hover:text-main-white hover:bg-hover transition-colors"
+            className="p-1 rounded-md text-muted hover:text-main-white hover:bg-hover transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -173,7 +176,7 @@ const AssetDetail=() =>{
           </span>
           <button
             onClick={()=>handleDownload(asset.data?.fileName,asset.data?.fileUrl)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-700
+            className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary-700
             hover:cursor-pointer hover:bg-primary-600 text-sm text-main-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +187,7 @@ const AssetDetail=() =>{
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto py-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
           <div className="lg:col-span-3 space-y-5">
@@ -198,7 +201,7 @@ const AssetDetail=() =>{
                   {[...asset.data?.versions].reverse().map((v: any) => (
                     <div
                       key={v.id}
-                      className="flex items-center justify-between gap-4 px-4 py-3 rounded-lg bg-secondary-700/40 border border-border hover:border-primary-500/30 transition-colors group"
+                      className="flex items-center justify-between gap-4 px-4 py-3 rounded-md bg-secondary-700/40 border border-border hover:border-primary-500/30 transition-colors group"
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-xs font-mono px-2 py-0.5 rounded bg-primary-700/30 text-primary-300 border border-primary-500/20">
@@ -208,17 +211,19 @@ const AssetDetail=() =>{
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-xs text-muted">{asset.data?.size ? (asset.data?.size/1024/1024).toFixed(2) : 0} MB</span>
-                        <a
-                          href={v.fileUrl}
-                          target="_blank"
+                        <button 
+                        onClick={() => {
+                            const ext = v.fileUrl?.split(".").pop()||"jpg";
+                            handleDownload(`v${v.versionNumber}.${ext}`, v.fileUrl);
+                          }}
                           className="opacity-0 group-hover:opacity-100 transition-opacity text-primary-400
-                           hover:text-primary-300"
+                           hover:text-primary-300 hover:cursor-pointer"
                           title="download version"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                           </svg>
-                        </a>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -228,7 +233,7 @@ const AssetDetail=() =>{
               )}
             </Section>
             {canReview && (
-              <div className="rounded-xl border border-primary-500/20 bg-primary-900/20 p-5 space-y-4">
+              <div className="rounded-md border border-primary-500/20 bg-primary-900/20 p-5 space-y-4">
                 <h3 className="text-sm font-medium text-primary-300 uppercase tracking-widest">Review</h3>
                 {isReview.err && (
                   <p className="text-error text-xs">{isReview.err}</p>
@@ -237,7 +242,7 @@ const AssetDetail=() =>{
                   <button
                     disabled={isReview.process}
                     onClick={()=>handleReview("APPROVED")}
-                    className="flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg bg-success/50 hover:bg-success hover:cursor-pointer border border-success/30 text-white text-sm 
+                    className="flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-md bg-success/50 hover:bg-success hover:cursor-pointer border border-success/30 text-white text-sm 
                     font-sm disabled:opacity-50"
                   >
                    <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -248,7 +253,7 @@ const AssetDetail=() =>{
                   <button
                     disabled={isReview.process}
                     onClick={()=>handleReview("REJECTED")}
-                    className="flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg bg-error/50 hover:bg-error border border-error/30 
+                    className="flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-md bg-error/50 hover:bg-error border border-error/30 
                     text-white text-sm font-sm disabled:opacity-50 hover:cursor-pointer"
                   >
                     <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
