@@ -4,6 +4,7 @@ import { useApiService } from "../../services/useApiService";
 import ErrorMsg from "../../components/ErrorMsg";
 import { useAuth } from "../../hooks/AuthContext";
 import { useNavigate } from "react-router-dom";
+import DialogModal from "../../components/DialogModal";
 
 const CollectionsList=() =>{
   const [collections, setCollections] = useState<{data:Collection[], isLoad: boolean, err:string|null}>
@@ -67,6 +68,19 @@ const CollectionsList=() =>{
     navigate(`/dashboard/collections/${cId}`);
   }
 
+  const onDelCollection=async(cId:number)=>{
+    try{
+      const res= await makeReq({
+        method:"DELETE",
+        url:`/collections/${cId}`
+      });
+      console.log("res del collction: ", res);
+      if(res.success) fetchCollections();
+    }catch(err:any){
+      console.error(err);
+    }
+  }
+
   return (
     <div className="space-y-5">
       <div>
@@ -95,7 +109,7 @@ const CollectionsList=() =>{
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {collections.data?.map((c) => (
-            <button
+            <div
               key={c.id}
               onClick={() => onOpen(c.id)}
               className="text-left rounded-md border border-border bg-card p-3 hover:border-primary-500/40 
@@ -112,23 +126,41 @@ const CollectionsList=() =>{
                   }`}
                 >{c.isShared?"Shared": "Personal"}</span>
               </div>
+               <div className="flex justify-between items-center gap-3 mt-5 flex-wrap">
+                <div>
               <p className="text-sm text-gray truncate">{c.name}</p>
               <p className="text-xs text-muted mt-1">
                 {c._count?.assets ?? 0} asset{c._count?.assets === 1 ? "" : "s"} - {c.createdAt? formatDate(c.createdAt) : ""}
               </p>
-            </button>
+              </div>
+              {(c.ownerId=== user?.id|| user?.role === "ADMIN") &&
+                  <button className="flex-center text-error hover:text-error-light hover:bg-error/10 rounded-md p-1 transition-colors cursor-pointer" 
+                  title="Remove"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelCollection(c.id)}}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                    </svg>
+
+                  </button>
+              }
+              </div>
+            </div>
           ))}
         </div>
       )}
 
       {state.isAdd && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-surface border border-border rounded-md w-full max-w-md p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-medium text-main-white">
-                New collection</h2>
-            </div>
-            <div className="space-y-3">
+        <DialogModal isOpen={state.isAdd}
+        onClose={()=>onClose()}
+        isAction
+        submitBtn="Create"
+        title="New collection"
+        onSubmit={()=>handleAdd()}
+        children={
+          <div className="space-y-3">
               {state.err && <p className="text-error text-xs">{state.err}</p>}
               <input required
                 value={inpData.name}
@@ -159,25 +191,8 @@ const CollectionsList=() =>{
                 </label>
               )}
             </div>
-            <div className="flex justify-between gap-3 mt-5">
-              <button
-                onClick={()=>onClose()}
-                className="px-4 py-2 rounded-md text-sm text-muted
-                 hover:text-main-white transition-colors hover:cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAdd}
-                disabled={state.isSubmit}
-                className="px-5 rounded-md bg-primary-700 hover:bg-primary-600 
-                text-sm text-main-white disabled:opacity-50 transition-colors hover:cursor-pointer"
-              >
-                {"Create"}
-              </button>
-            </div>
-          </div>
-        </div>
+        }
+        />
       )}
     </div>
   );

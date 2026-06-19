@@ -83,11 +83,12 @@ export interface Collection{
   description?:string|null;
   isShared:boolean;
   createdAt:string;
+  ownerId:number;
   _count?:{assets:number};
   owner?: {name:string};
 }
 
-export type ModalMode={type:"move"|"copy";assetId: number}|null;
+export type ModalMode={type:"move"|"copy";assetId: number, cId:number|null}|null;
 export interface CollectionAsset {
   id:number;
   fileName:string;

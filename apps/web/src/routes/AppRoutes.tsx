@@ -22,6 +22,7 @@ export default function AppRoutes () {
                         <Route path={'assets/:id'} element={<AssetDetail/>}/>
                         <Route path={'collections'} element={<Collections/>}/>
                          <Route path={'collections/:id'} element={<CollectionDetail/>}/>
+                         <Route path="collections/:collectionId/assets/:id" element={<AssetDetail />}/>
                     </Route>
                 </Route>
             </Routes>
