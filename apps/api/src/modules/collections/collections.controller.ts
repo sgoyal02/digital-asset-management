@@ -9,7 +9,7 @@ export class CollectionController{
      try {
       const userId= req.user!.id;
       const role= req.user!.role;
-      const excludeId= req.query.exclude?Number(req.query.exclude) : undefined;
+      const excludeId= req.query.exclude?Number(req.query.exclude) : undefined; //curr col not include
       const collections= await collectionService.getAllCollections(userId,role, excludeId);
       sendSuccess(res, collections, "Collections fetched successfully");
     } catch (err: any) {
@@ -65,6 +65,57 @@ export class CollectionController{
     } catch(err:any) {
       const code= err.statusCode|| 500;
       return sendError(res, err.message, code);
+    }
+  }
+
+  async addAssetToCollection(req:AuthReq, res:Response) {
+    try {
+      const userId= req.user!.id;
+      const role= req.user!.role;
+      const cId= Number(req.params.id);
+      const {assetIds} = req.body;
+      console.log('aIds:', assetIds, typeof assetIds[0]);
+      if (!Array.isArray(assetIds)||!assetIds.length) {
+        return sendError(res,"asset ids not avail", 400);
+      }
+      const result = await collectionService.addAssets(cId,assetIds, userId, role);
+      sendSuccess(res,result, "asset add in collection success");
+    } catch (err:any) {
+      const code= err.statusCode || 500;
+      return sendError(res,err.message, code);
+    }
+  }
+ 
+  async delAssetInCollection(req:AuthReq,res:Response) {
+    try {
+      const userId= req.user!.id;
+      const role= req.user!.role;
+      const cId= Number(req.params.id);
+      const aId= Number(req.params.assetId);
+ 
+      const result = await collectionService.delAsset(cId,aId,userId, role);
+      sendSuccess(res,result, "asset rmeove success");
+    } catch (err:any) {
+      const code= err.statusCode|| 500;
+      return sendError(res,err.message, code);
+    }
+  }
+ 
+  async moveAsset(req:AuthReq, res:Response) {
+    try {
+      const userId= req.user!.id;
+      const role= req.user!.role;
+      const cId= Number(req.params.id);
+      const aId= Number(req.params.assetId);
+      const {destId} = req.body;
+      if (!destId){
+        return sendError(res,"invalid req",400);
+      }
+      const result= await collectionService.moveAsset(cId, aId, Number(destId), userId, role);
+      sendSuccess(res,result, "asset move success");
+    } catch(err:any) {
+      const code= err.statusCode|| 500;
+      return sendError(res,err.message,code);
     }
   }
  

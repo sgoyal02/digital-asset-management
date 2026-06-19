@@ -3,13 +3,13 @@ import { prisma } from "../../lib/prisma";
 export class CollectionService{
  async getAllCollections(userId:number,role: string,excludeId?: number) {
     let where:any;
-    if (role === "ADMIN") {where = {}} 
+    if(role === "ADMIN") {where = {}} 
     else {
       where = {
         OR:[{ ownerId: userId, isShared: false },{ isShared: true }] //own or teams
       };
     }
-    if (excludeId) {
+    if(excludeId) {
       where= {AND:[where,{id:{not:excludeId}}]};
     }
     const listData= await prisma.collection.findMany({
@@ -49,32 +49,35 @@ export class CollectionService{
     const cData = await prisma.collection.findUnique({
       where:{id:cId},
     });
-    if (!cData) {
+    if(!cData) {
       const err: any = new Error("collection not found");
       err.statusCode = 404;
       throw err;
     }
-    if (!cData.isShared&& cData.ownerId !== userId && role !== "ADMIN") { 
+    if(!cData.isShared&& cData.ownerId !== userId && role !== "ADMIN") { 
       const err: any = new Error("collection view-access denied"); //for admin/own only
       err.statusCode = 403;
       throw err;
     }
 
     //view checksfor asset
-    let assetExp: any = {};
-    if (role === "ADMIN"){assetExp = {};} 
-    else if (role === "USER") {
-      assetExp={ownerId: userId};
-    }else{
-      const team = await prisma.user.findMany({
-        where:{managerId:userId },select:{id: true },
-      });
-      const teamIds = team.map((u) => u.id);
-      assetExp = {ownerId:{in:[userId, ...teamIds]}};
-    }
+    //user not able to see admin added files-so del--? 
+    // let assetExp: any = {};
+    // if(role === "ADMIN"){assetExp = {};} 
+    // else if(role === "USER") {
+    //   assetExp={ownerId: userId};
+    // }else{
+    //   const team = await prisma.user.findMany({
+    //     where:{managerId:userId },select:{id: true },
+    //   });
+    //   const teamIds = team.map((u) => u.id);
+    //   assetExp = {ownerId:{in:[userId, ...teamIds]}};
+    // }
  
     const rows= await prisma.assetCollection.findMany({
-      where:{collectionId:cId,asset: assetExp,},
+      where:{collectionId:cId,
+        // asset: assetExp,
+      },
       include:{
         asset:{select:{
             id: true,
@@ -94,18 +97,92 @@ export class CollectionService{
 
   async delCollectoin(cId: number,userId: number,role: string) {
     const cData = await prisma.collection.findUnique({where:{id:cId}});
-    if (!cData) {
+    if(!cData) {
       const err:any = new Error("collection not found");
       err.statusCode = 404;
       throw err;
     }
-    if (cData.ownerId!== userId && role !== "ADMIN") {
+    if(cData.ownerId!== userId && role !== "ADMIN") {
       const err:any= new Error("collectoin del denied-access for own, admin");
       err.statusCode= 403;
       throw err;
     }
     await prisma.collection.delete({where:{id:cId}});
     return {deleted:true};
+  }
+
+  async addAssets(cId:number,aIds: number[],userId: number,role: string) {
+    const c= await prisma.collection.findUnique({where:{id:cId}});
+    if(!c) {
+      const err: any = new Error("collection not exis");
+      err.statusCode = 404;
+      throw err;
+    }
+    if(!c.isShared && c.ownerId!== userId && role!== "ADMIN") {
+      const err: any = new Error("collection access denied");
+      err.statusCode = 403;
+      throw err;
+    }
+    const data=aIds.map((aId)=>({assetId:aId, collectionId:cId}));
+    console.log('inserting:', data);
+    const result = await prisma.assetCollection.createMany({data, skipDuplicates: true,}); //skip-file in collectio already-check??
+    console.log('res add:', result);
+    return {count:result.count};
+  }
+
+  //del from c1 only-not del all
+  async delAsset(cId: number,aId: number,userId: number, role: string) {
+    const c = await prisma.collection.findUnique({ where:{id:cId} });
+    if(!c){
+      const err:any = new Error("collection not found");
+      err.statusCode = 404;
+      throw err;
+    }
+    if(!c.isShared && c.ownerId!== userId && role !== "ADMIN") {
+      const err: any = new Error("collection access denied");
+      err.statusCode = 403;
+      throw err;
+    }
+    
+    await prisma.assetCollection.delete({
+      where: {assetId_collectionId:{assetId:aId, collectionId:cId}},
+    });
+    return{del:true};
+  }
+ 
+  //del from c1-add to c2
+  async moveAsset(currId: number,aId: number,destId: number,userId: number,role: string){
+    if(currId=== destId) {
+      const err: any = new Error("curr and dest collection same");
+      err.statusCode = 400;
+      throw err;
+    }
+    const [curr,dest]=await Promise.all([
+      prisma.collection.findUnique({ where: { id: currId } }),
+      prisma.collection.findUnique({ where: { id: destId } }),
+    ]);
+    if(!curr || !dest) {
+      const err:any = new Error("collection not found");
+      err.statusCode = 404;
+      throw err;
+    }
+    const allowShare= (c:typeof curr)=>c!.isShared|| c!.ownerId=== userId|| role === "ADMIN";
+    if(!allowShare(curr)|| !allowShare(dest)) {
+      const err: any = new Error("coolection access denied");
+      err.statusCode = 403;
+      throw err;
+    }
+
+    await prisma.$transaction([prisma.assetCollection.deleteMany({
+        where:{assetId:aId, collectionId:currId },
+      }),
+      prisma.assetCollection.upsert({
+        where:{assetId_collectionId:{assetId:aId, collectionId: destId}},  //check--if link curr pr
+        create:{assetId:aId, collectionId: destId },
+        update:{}, //-any to do
+      }),
+    ]);
+    return{move:true};
   }
 
 }
