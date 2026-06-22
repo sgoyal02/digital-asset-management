@@ -1,15 +1,29 @@
 import { useEffect, useState } from "react";
 import { useApiService } from "../services/useApiService";
-import type { DashboardStats } from "../utils/types";
+import { STATUS_COLORS, TYPE_COLORS, type DashboardStats, type DashReports } from "../utils/types";
 import ErrorMsg from "../components/ErrorMsg";
+import { Bar, BarChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from "recharts";
+
 
 const Dashboard = () => {
     const [stats, setStats] = useState<{isLoad:Boolean, data:DashboardStats|null, errTxt:string}>
                               ({isLoad: false, data:null, errTxt:""});
+    const [reportsData, setReportsData]= 
+    useState<{isLoad:Boolean, data:DashReports|null, errTxt:string, days:number}>
+    ({isLoad: false, data:null, errTxt:"", days:5});
     const {makeReq}= useApiService();
+    const typeData = reportsData.data?.byType?.map((item, i) => ({
+      ...item,
+      fill:TYPE_COLORS[item.name]|| "var(--color-secondary-300)"
+    }));
+    const statusData = reportsData.data?.byStatus?.map((item, i) => ({
+      ...item,
+      fill: STATUS_COLORS[item.name]|| "var(--color-secondary-300)"
+    }));
 
     useEffect(()=>{
       fetchStats();
+      fetchReports(5);
     },[]);
 
     const fetchStats=async () => {
@@ -25,6 +39,29 @@ const Dashboard = () => {
             setStats({isLoad: false, data: null, errTxt: err.message|| 'Failed to load assets stats.'});
         }
     };
+
+    const fetchReports=async(d:number, isPoling=false) => {
+    try {
+      if(!isPoling)
+      setReportsData(prev => ({ ...prev, isLoad: true, errTxt: ''}));
+      const res = await makeReq({method: 'GET', url: `/reports/usage?days=${d}`});
+      console.log("res report dash: ", res);
+      if (!res.data?.data) {
+        setTimeout(() =>fetchReports(d,true), 3000);
+        return;
+      } else {
+      setReportsData((prev)=>({...prev, isLoad: false,data: res.data?.data, errTxt: ''}));
+}
+    }catch(err:any) {
+      console.error('dash stats err: ', err);
+      setReportsData((prev)=>({...prev, isLoad: false, data:null, errTxt: err.message|| 'Fail to load reports.'}));
+    }
+    };
+
+  const handleDayChange= (d:number)=> {
+    setReportsData((prev)=>({...prev, days:d}))
+    fetchReports(d);
+  };
     
   return (
     <div className="space-y-5">
@@ -101,15 +138,52 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* chart-area-- */}
         <div className="lg:col-span-8 bg-card border border-border rounded-md p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">Usage Trends</h3>
-          </div>
           {/* report --todo */}
-        </div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-gray">Usage Trends</h3>
+            <div className="flex gap-1">
+               {[7, 30, 90].map((d) => (
+                <button key={d} onClick={() => handleDayChange(d)}
+                  className={`px-3 py-1 text-xs rounded-md transition-colors 
+                    ${reportsData.days=== d? 'bg-primary-700 text-main-white': 'text-muted hover:text-gray hover:bg-hover'}`
+                  }>{d}D </button>
+                ))}
+            </div>
+          </div>
+          {reportsData.isLoad ?
+            <div className="h-52 flex items-center justify-center text-muted text-sm">
+              Loading chart..</div>
+          : !reportsData.data?
+          <div className="h-52 flex items-center justify-center text-muted text-sm">
+              No uploads</div>
+          :
+          <ResponsiveContainer width="100%" height={150}>
+           <BarChart data={reportsData.data.calUploads} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+           <CartesianGrid strokeDasharray="3 3" stroke="rgba(188,173,225,0.08)" />
+            <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'rgba(226,232,240,0.65)' }}
+              tickFormatter={(val) => {const d = new Date(val);
+                            return `${d.getDate()}/${d.getMonth() + 1}`;
+                          }}
+            />
+            <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: 'rgba(226,232,240,0.65)' }}/>
+            <Tooltip labelFormatter={(val) => new Date(val).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+              formatter={(value: any) => [value, 'Uploads']}
+              contentStyle={{
+                background: '#1a1d2b',
+                border: '1px solid rgba(188,173,225,0.18)',
+                borderRadius: '8px',
+                fontSize: '12px',
+                color: '#e2e8f0'}}
+              />
+              <Bar dataKey="count" fill="#9d82d0" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              </BarChart>
+              </ResponsiveContainer>
+          }
+          </div>
 
         {/* process-status-- */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-card border border-border rounded-md p-4">
+          <div className="bg-card border border-border rounded-md p-4 h-[250px]">
             <h3 className="text-sm font-semibold mb-2">Asset Status</h3>
             <div className="space-y-6">
               <div>
@@ -134,6 +208,36 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      <div className="flex gap-1.5">
+        <ResponsiveContainer width="50%" height={180} className="rounded-md border border-dashed border-border">
+        <PieChart>
+        <Pie
+          data={typeData}
+          dataKey="count"
+          nameKey="name"
+          outerRadius={60}
+        >
+        </Pie>
+        <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
+      {/*todo--keep asset status and pie status in one? - type pie rpelace to top with usage*/}
+      <ResponsiveContainer width="50%" height={180} 
+      className="rounded-md border border-dashed border-border">
+        <PieChart>
+        <Pie
+          data={statusData}
+          dataKey="count"
+          nameKey="name"
+          outerRadius={60}
+        >
+        </Pie>
+        <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+
       </div>
       }
     </div>

@@ -68,7 +68,34 @@ function FilePreview({fileUrl, mimeType, fileName }: { fileUrl: string; mimeType
       </div>
     );
   }
-  return (<div>to do</div>);
+  if (mimeType === "application/pdf") {
+  return (
+    <div className="w-full h-[300px] rounded-md overflow-hidden border border-border">
+      <iframe
+        src={fileUrl}
+        title={fileName}
+        className="w-full h-full"
+      />
+    </div>
+  );
+}
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 w-full min-h-64 bg-secondary-700/50 rounded-xl border border-border">
+      <div className="w-16 h-16 rounded-xl bg-primary-600/20 border border-primary-500/30 flex items-center justify-center">
+        <svg className="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        </svg>
+      </div>
+      <p className="text-muted text-sm">{mimeType}</p>
+      <a
+        href={fileUrl}
+        download={fileName}
+        className="px-4 py-2 rounded-lg bg-primary-700 hover:bg-primary-600 text-main-white text-sm transition-colors"
+      >
+        Download file
+      </a>
+    </div>
+  );
 }
 
 const AssetDetail=() =>{

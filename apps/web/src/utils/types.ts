@@ -103,3 +103,23 @@ export interface CollectionDetail {
   description?: string | null;
   isShared: boolean;
 }
+
+export interface DashReports{
+  byStatus:{name:string, count:number}[];
+  byType:{name:string, count:number}[];
+  calUploads:{date:string, count:number}[];
+}
+
+export const STATUS_COLORS:Record<string,string> = {
+  APPROVED:"var(--color-success)",
+  REJECTED:"var(--color-error)",
+  UPLOADED:"var(--color-primary-500)",
+};
+
+export const TYPE_COLORS:Record<string,string> = {
+  Image:"var(--color-primary-500)", 
+  Video:"var(--color-info)",
+  Audio:"var(--color-warning)", 
+  Doc:"var(--color-secondary-300)",
+  Other:"var(--color-secondary-400)",
+};
