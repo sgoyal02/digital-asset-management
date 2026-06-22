@@ -64,6 +64,7 @@ const CollectionDetail=() =>{
         url:`/collections/${param.id}/assets/${assetId}`
       })
       console.log("Res aId del: ", res);
+      if(res.success) getDetail();
     }catch(err:any){
       console.error(err);
     }finally{
