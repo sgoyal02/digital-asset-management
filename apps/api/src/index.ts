@@ -8,6 +8,7 @@ import { metadataDataWorker } from './workers/metadata.worker';
 import { duplicateWorker } from './workers/duplicate.worker';
 import { expiryWorker } from './workers/expiry.worker';
 import { minioClient, setPublicBuckets } from './lib/minio';
+import { reportWorker } from './workers/report.worker';
 
 const PORT = process.env.PORT || 4000;
 
@@ -48,6 +49,7 @@ const bootstrap=async()=>{
     await metadataDataWorker();
     await duplicateWorker();
     await expiryWorker();
+    await reportWorker();
     
     app.listen(PORT, () => {
       console.log("server run on PORT: ", PORT);

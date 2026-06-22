@@ -7,7 +7,7 @@ let channel:Channel;
 export const connectRabbitMq=async(check=3):Promise<void> => {
   for(let i = 0;i<check;i++) {
     try {
-      connection=await amqp.connect(process.env.RABBITMQ_URL!);
+      connection=await amqp.connect(process.env.RABBITMQ_URL!); //if idle reenable do-??
       channel=await connection.createChannel();
       console.log('queu rabbit connected');
 

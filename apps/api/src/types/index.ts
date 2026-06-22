@@ -38,3 +38,10 @@ export interface AssetUploadPayload{
   ownerId:number;
   versionNumber:number;
 }
+
+export interface ReportPayload{
+  type:'USAGE_TRENDS'|'DUPLICATES';
+  userId:number;
+  role:string;
+  days?:number;
+}
