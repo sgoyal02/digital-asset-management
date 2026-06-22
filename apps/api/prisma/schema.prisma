@@ -132,3 +132,14 @@ model AssetCollection {
   @@id([assetId, collectionId])
   @@map("asset_collections")
 }
+
+model ReportCal{
+  id Int @id @default(autoincrement())
+  type String    // 'USAGE_TRENDS'|'DUPLICATES'
+  role String   // 'admin'| 'user_Id'| 'manager_Id'
+  days Int @default(5)
+  payload Json
+  createdAt DateTime @default(now())
+  @@unique([type,role,days])
+  @@map("report_cal")
+}
