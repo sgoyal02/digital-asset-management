@@ -12,5 +12,6 @@ COPY apps/api/package.json ./apps/api/
 RUN pnpm install --frozen-lockfile
 COPY . .
 EXPOSE 5000
-# CMD ["pnpm", "--filter", "api", "dev"] as startup control by docker compose
-CMD ["node"]
+CMD ["pnpm", "--filter", "api", "dev"]
+#no need cmd abv as startup control by dockercompose
+# CMD ["node"]

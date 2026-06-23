@@ -1,6 +1,7 @@
 FROM node:22
 WORKDIR /app
 RUN corepack enable
+RUN corepack prepare pnpm@11.5.1 --activate
 ENV CI=true
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
