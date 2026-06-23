@@ -12,7 +12,7 @@ const whereAsExp= async(role:string,userId:number) => {
   const team= await prisma.user.findMany({      //for manag
     where:{managerId: userId},select:{id: true},
   });
-  return{ownerId: {in:[userId, ...team.map(u=>u.id)]}};
+  return{ownerId: {in:[userId, ...team.map((u:any)=>u.id)]}};
 };
 
 const calUsageTrends=async(userId:number, role:string, days:number)=>{
@@ -53,8 +53,29 @@ const calUsageTrends=async(userId:number, role:string, days:number)=>{
   }
   console.log("cal: ", calUploads, byStatus,typeMap )
 
-  return {calUploads, byStatus:byStatus.map(r =>({ name: r.status, count: r._count.id })),
+  return {calUploads, byStatus:byStatus.map((r:any) =>({ name: r.status, count: r._count.id })),
     byType:Object.entries(typeMap).map(([name,count])=>({name, count})),
+  };
+}
+
+const calDupes= async(userId: number, role:string)=>{
+  const where= await whereAsExp(role,userId);
+  const [dupeCount,cleanCount, dupeSizeRaw] = await Promise.all([
+    prisma.asset.count({where:{...where, isDupe: true}}),
+    prisma.asset.count({where:{ ...where, isDupe: false}}),
+    prisma.asset.aggregate({where:{ ...where, isDupe: true}, _sum:{size: true}}),
+  ]);
+  const dupeGrps= await prisma.asset.groupBy({by:['fileHash'], _count:{id: true }, //samehash dupe
+    having:{id:{ _count:{gt: 1 }}},
+    where:{...where, fileHash:{not: null }},
+  });
+
+  return{duplication:[
+      {name:'Duplicates', count: dupeCount},
+      {name:'Clean', count: cleanCount},
+    ],
+    dupeGroups:dupeGrps.length,
+    storageDupe:(Number(dupeSizeRaw._sum.size?? 0)/1024/1024).toFixed(2),
   };
 }
 
@@ -62,13 +83,14 @@ const calUsageTrends=async(userId:number, role:string, days:number)=>{
 export const reportWorker= async()=> {
   const ch= getChannel();
   ch.prefetch(1);
-  ch.consume(QUEUES.REPORT, async(msg)=>{
+  ch.consume(QUEUES.REPORT, async(msg:any)=>{
     if(!msg) return;
     const{type,userId,role,days=5}:ReportPayload= JSON.parse(msg.content.toString());
     console.log("rep worker in: ", msg.content);
     try{
       let payload: any;
       if (type==='USAGE_TRENDS')payload= await calUsageTrends(userId,role,days);
+      if (type==='DUPLICATES')payload= await calDupes(userId,role);
       
       await prisma.reportCal.upsert({
         where:{type_role_days:{ type, role:roleKey(role,userId), days}},

@@ -29,4 +29,8 @@ export class ReportService{
   async getUsageTrends(userId:number,role:string,days:number){
     return this.calData('USAGE_TRENDS', userId, role, days);
   }
+  async getDuplicates(userId:number,role:string){
+    return this.calData('DUPLICATES', userId, role, 30)
+  }
+
 }

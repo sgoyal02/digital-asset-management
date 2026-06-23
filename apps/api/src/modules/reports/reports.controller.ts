@@ -16,4 +16,15 @@ export class ReportController{
       return sendError(res, err.message, err.statusCode|| 500);
       }
     }
+  
+  async getDuplicates(req:AuthReq, res:Response){
+    try{
+      const userId= req.user!.id;
+      const role= req.user!.role;
+      const result = await reportService.getDuplicates(userId,role);
+      sendSuccess(res, result, 'fetch success:duplicates report');
+    }catch(err:any){
+      return sendError(res, err.message, err.statusCode|| 500);
+      }
+  }
 }
