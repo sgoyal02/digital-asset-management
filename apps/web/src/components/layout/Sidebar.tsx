@@ -2,11 +2,13 @@ import { NavLink } from 'react-router-dom';
 import file from '../../images/file.svg';
 import dashIcon from '../../images/dashboard.svg';
 import folder from '../../images/folder.svg';
+import report from '../../images/report.svg';
 
 const menuItems = [
   { to: ".", label: "Dashboard", icon: dashIcon}, 
   { to: "assets", label: "Assets Overview", icon: file },
   { to: "collections", label: "Collections", icon: folder },
+  { to: "reports", label: "Reports", icon: report },
 ];
 
 interface SideBarProp{

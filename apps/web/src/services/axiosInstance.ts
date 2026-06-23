@@ -18,10 +18,13 @@ axiosInstance.interceptors.response.use((response) => response,
 (error) => {
     const msg= error.response?.data?.message || error.response?.data?.message ||
                 error.message || 'Something went wrong. Please try again.';
-    if (error.response && error.response.status === 401) {  
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.replace('/login');
+    if (error.response && error.response.status === 401) { 
+        const isLoginReq = error.config?.url?.includes("/login");
+         if (!isLoginReq) {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.replace("/login");
+        }
     }
     return Promise.reject(({
         status: error.response?.status || 500,
