@@ -20,7 +20,7 @@ export default function Login() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    setPageState({...pageState, isLoad: true, err: ""});
+    setPageState((prev)=>({...prev,isLoad: true, err: ""}));
     try{
       const res= await apiService.makeReq({
         method: 'POST',
@@ -28,14 +28,18 @@ export default function Login() {
         data: { email: userData.email, password: userData.password}
       });
       console.log("login res: ", res);
-      if(res.success){
-        setAuthData(res.data.token, res.data.user, true, ()=>{
-            navigate('/dashboard', {replace:true});
-        });
+      if(res && res?.success){
+         setPageState((prev)=>({...prev,isLoad: false}));
+        // setAuthData(res.data.token, res.data.user, true, ()=>{
+        //     navigate('/dashboard', {replace:true});
+        // });
+        setAuthData(res.data.token, res.data.user, true);
+        navigate('/dashboard', {replace:true});
+      } else {
+        setPageState((prev)=>({...prev,isLoad: false, err: res.message ||'fail api'}));
       }
-      setPageState({...pageState, isLoad: false, err:""});
     } catch(err:any){
-      setPageState({...pageState, isLoad: false, err: err.message || "Login failed. Please try again."});
+       setPageState((prev)=>({...prev,isLoad: false, err:err.message || "Login failed. Please try again."}));
       return;
     }
   };

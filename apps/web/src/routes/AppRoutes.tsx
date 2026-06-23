@@ -8,6 +8,7 @@ import AssetsOverview from "../pages/AssetsOverview";
 import AssetDetail from "../modules/assets/AssetDetail";
 import Collections from "../pages/Collections";
 import CollectionDetail from "../modules/collections/CollectionDetail";
+import Reports from "../pages/Reports";
 
 
 export default function AppRoutes () {
@@ -23,6 +24,7 @@ export default function AppRoutes () {
                         <Route path={'collections'} element={<Collections/>}/>
                          <Route path={'collections/:id'} element={<CollectionDetail/>}/>
                          <Route path="collections/:collectionId/assets/:id" element={<AssetDetail />}/>
+                         <Route path={"reports"} element={<Reports />}/>
                     </Route>
                 </Route>
             </Routes>

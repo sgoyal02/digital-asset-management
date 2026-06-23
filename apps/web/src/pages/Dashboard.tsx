@@ -10,7 +10,7 @@ const Dashboard = () => {
                               ({isLoad: false, data:null, errTxt:""});
     const [reportsData, setReportsData]= 
     useState<{isLoad:Boolean, data:DashReports|null, errTxt:string, days:number}>
-    ({isLoad: false, data:null, errTxt:"", days:5});
+    ({isLoad: false, data:null, errTxt:"", days:7});
     const {makeReq}= useApiService();
     const typeData = reportsData.data?.byType?.map((item, i) => ({
       ...item,
@@ -23,7 +23,7 @@ const Dashboard = () => {
 
     useEffect(()=>{
       fetchStats();
-      fetchReports(5);
+      fetchReports(7);
     },[]);
 
     const fetchStats=async () => {
@@ -142,7 +142,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray">Usage Trends</h3>
             <div className="flex gap-1">
-               {[7, 30, 90].map((d) => (
+               {[7, 15, 30].map((d) => (
                 <button key={d} onClick={() => handleDayChange(d)}
                   className={`px-3 py-1 text-xs rounded-md transition-colors 
                     ${reportsData.days=== d? 'bg-primary-700 text-main-white': 'text-muted hover:text-gray hover:bg-hover'}`
