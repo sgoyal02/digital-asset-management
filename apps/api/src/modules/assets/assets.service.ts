@@ -69,7 +69,7 @@ export class AssetService {
             ownerId: (dbUser.id),
             expiryDate: expDate,
             departmentId:dbUser.departmentId ?? null,
-            status: isAdmin ? 'APPROVED' : 'PENDING',
+            status:'PENDING',
             versions: {
               create: {versionNumber,fileUrl,fileKey: objName,size: fileSize}
             },
@@ -231,7 +231,7 @@ export class AssetService {
       }
     }
     //status basis
-    if (['APPROVED','REJECTED','ARCHIVED'].includes(asset.status)) {
+    if (asset.status!== 'UNDER_REVIEW') {
       const err:any= new Error('based on asset status- can not review');
       err.statusCode = 400;
       throw err;

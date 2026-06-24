@@ -2,6 +2,8 @@ import { Response } from "express";
 import { AuthReq } from "../../middleware/auth.middleware";
 import { sendError, sendSuccess } from "../../response";
 import { AssetService } from "./assets.service";
+import { prisma } from "../../lib/prisma";
+import { markAssetStatus } from "../../types/helper";
 
 const assetService = new AssetService();
 export class AssetController{
@@ -39,9 +41,27 @@ async uploadAsset(req: AuthReq, res:Response) {
     if (!req.file) return sendError(res, "No file attached", 400);
     const user = req.user!;
     const role= req.user!.role;
-    const newAsset = await assetService.uploadAsset(user, req.file,);
-    const msg= role==='ADMIN' ? 'asset uploaded and approved' : 'asset upload success-pending review)'
+    const newAsset = await assetService.uploadAsset(user, req.file);
+    const msg= role==='ADMIN' ? 'asset uploaded and approved' : 'asset upload success'
     sendSuccess(res, newAsset, msg, 201);
+  } catch (err: any) {
+    console.log("err catch: ", err);
+    const code= err.statusCode || 500;
+    return sendError(res, err.message, code);
+  }
+}
+
+async reqReview(req:AuthReq, res:Response) {
+  try {
+    const assetId= Number(req.params.id);
+    const userId= req.user!.id;
+    const asset= await prisma.asset.findUnique({where:{id:Number(assetId)}});
+    if (!asset)return sendError(res, "asset not found", 404);
+    if (asset.ownerId!== userId)return sendError(res, "own asset review allowed", 403);
+    if (asset.status !== 'UPLOADED') return sendError(res, "review for uploaded status asset only", 400);
+
+    await markAssetStatus(Number(assetId), 'UNDER_REVIEW');
+    sendSuccess(res, null, "asset sent for review", 201);
   } catch (err: any) {
     console.log("err catch: ", err);
     const code= err.statusCode || 500;
