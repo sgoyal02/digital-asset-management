@@ -7,6 +7,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import Ffmpeg from '../lib/ffmpeg';
+import { markAssetStatus } from '../types/helper';
 
 const BUCKET = 'assets';
 
@@ -34,6 +35,7 @@ export const metadataDataWorker = async () => {
     const {assetId,fileKey,mimeType}:AssetUploadPayload=JSON.parse(msg.content.toString());
     let tmpPath:string|null= null;
     try {
+      await markAssetStatus(assetId, 'PROCESSING');
      let duration:number|null= null;
       if (mimeType.startsWith('video/')|| mimeType.startsWith('audio/')) {
         const stream = await minioClient.getObject(BUCKET, fileKey);
@@ -45,12 +47,14 @@ export const metadataDataWorker = async () => {
       }
        await prisma.asset.update({
           where:{id:assetId},
-          data: {...(duration!== null &&{duration}),status: 'UPLOADED'}
+          data: {duration:duration||null}
         });
     console.log("worker meta tym: ",assetId,duration);
     ch.ack(msg);
-    } catch (err) {
+    await markAssetStatus(assetId, 'UPLOADED');
+    } catch (err:any) {
       console.error('worker meta fail:',err);
+      await markAssetStatus(assetId, 'FAILED');
       ch.nack(msg, false, false);
     }finally{
       if (tmpPath && fs.existsSync(tmpPath)) {

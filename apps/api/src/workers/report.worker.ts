@@ -1,7 +1,8 @@
 import { prisma } from '../lib/prisma';
 import { getChannel } from '../queue/connection';
 import { QUEUES } from '../queue/queues';
-import { ReportPayload } from '../types';
+import { ReportFilters, ReportPayload } from '../types';
+import { whereExpReport } from '../types/helper';
 
 const roleKey=(role:string, uId:number) =>
   role=== 'ADMIN'? 'ADMIN': `${role}_${uId}`;
@@ -15,7 +16,7 @@ const whereAsExp= async(role:string,userId:number) => {
   return{ownerId: {in:[userId, ...team.map((u:any)=>u.id)]}};
 };
 
-const calUsageTrends=async(userId:number, role:string, days:number)=>{
+const calUsageTrends=async(userId:number, role:string, days:number|undefined)=>{
   const since= new Date();
   since.setDate(since.getDate()-days);
   const where= await whereAsExp(role, userId);
@@ -58,7 +59,7 @@ const calUsageTrends=async(userId:number, role:string, days:number)=>{
   };
 }
 
-const calDupes= async(userId: number, role:string)=>{
+const calDupes= async(userId: number, role:string, filters:ReportFilters)=>{
   const where= await whereAsExp(role,userId);
   const [dupeCount,cleanCount, dupeSizeRaw] = await Promise.all([
     prisma.asset.count({where:{...where, isDupe: true}}),
@@ -79,22 +80,42 @@ const calDupes= async(userId: number, role:string)=>{
   };
 }
 
+const calCompliance= async(userId: number, role: string, filters?: ReportFilters) => {
+  const where= await whereExpReport(role, userId, filters);
+  const assets= await prisma.asset.findMany({where,
+    select:{status: true, expiryDate: true,isArchived: true,},
+  });
+  const currDay = new Date();
+  const result = {healthy: 0, expiring_soon: 0,expired:0,archived: 0,rejected: 0};
+  for(const a of assets) {
+    if(a.isArchived) result.archived++;
+    else if(a.status === "REJECTED") result.rejected++;
+    else if(a.expiryDate && a.expiryDate< currDay) result.expired++;
+    else if(a.expiryDate && a.expiryDate > currDay && a.expiryDate< new Date(currDay.getTime() + 30*24*60*60*1000)){
+      result.expiring_soon++;
+    }else{
+      result.healthy++;
+    }
+  }
+  return result;
+};
 
 export const reportWorker= async()=> {
   const ch= getChannel();
   ch.prefetch(1);
   ch.consume(QUEUES.REPORT, async(msg:any)=>{
     if(!msg) return;
-    const{type,userId,role,days=5}:ReportPayload= JSON.parse(msg.content.toString());
+    const{type,userId,role,filters}:ReportPayload= JSON.parse(msg.content.toString());
     console.log("rep worker in: ", msg.content);
     try{
       let payload: any;
-      if (type==='USAGE_TRENDS')payload= await calUsageTrends(userId,role,days);
-      if (type==='DUPLICATES')payload= await calDupes(userId,role);
+      if (type==='USAGE_TRENDS')payload= await calUsageTrends(userId,role,filters.days);
+      if (type==='DUPLICATES')payload= await calDupes(userId,role, filters);
+      if (type==='COMPLIANCE')payload= await calCompliance(userId,role, filters);
       
       await prisma.reportCal.upsert({
-        where:{type_role_days:{ type, role:roleKey(role,userId), days}},
-        create:{type,role:roleKey(role,userId),days, payload},
+        where:{type_role_days:{ type, role:roleKey(role,userId), days:filters.days}},
+        create:{type,role:roleKey(role,userId), days:filters.days, payload},
         update:{payload, createdAt:new Date()},
       });
       ch.ack(msg);

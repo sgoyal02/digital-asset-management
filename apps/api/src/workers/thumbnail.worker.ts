@@ -9,6 +9,7 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import Ffmpeg from '../lib/ffmpeg';
+import { markAssetStatus } from '../types/helper';
 
 const BUCKET = 'assets';
 const THUMB_BUCKET = 'thumbnails';
@@ -45,6 +46,7 @@ export const thumbnailWorker=async() => {
     if (!msg) return;
     const {assetId,fileKey,mimeType}:AssetUploadPayload=JSON.parse(msg.content.toString());
     try {
+      await markAssetStatus(assetId, 'PROCESSING');
       const isThumbBkt=await minioClient.bucketExists(THUMB_BUCKET);
       if (!isThumbBkt) await minioClient.makeBucket(THUMB_BUCKET);
 
@@ -60,6 +62,7 @@ export const thumbnailWorker=async() => {
       }else { 
         await prisma.asset.update({where:{id:assetId},data:{thumbnailUrl: null}}); //audio,doc
         ch.ack(msg);
+        await markAssetStatus(assetId, 'UPLOADED');
         return;
       }
 
@@ -74,12 +77,13 @@ export const thumbnailWorker=async() => {
         await prisma.asset.update({where:{id: assetId},data:{thumbnailUrl: thumbUrl}});
       }
       ch.ack(msg);
+      await markAssetStatus(assetId, 'UPLOADED');
     } catch (err) {
       console.error("thumb worker fail: ", err);
+      await markAssetStatus(assetId, 'FAILED');
       ch.nack(msg, false, false);
-      await prisma.asset.update({where:{id:assetId},data:{status:'FAILED'}});
     }
   });
 
-  console.log('thumb worker listen: ',QUEUES.THUMBNAIL);
+  // console.log('thumb worker listen: ',QUEUES.THUMBNAIL);
 };

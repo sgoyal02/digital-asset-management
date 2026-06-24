@@ -6,5 +6,6 @@ const router= Router();
 const reportController= new ReportController();
 router.get('/usage',authMiddleware, reportController.getUsageTrends);
 router.get('/duplication',authMiddleware, reportController.getDuplicates);
+router.get('/compliance', authMiddleware, reportController.getCompliance);
 
 export {router as reportRouter};
