@@ -25,7 +25,6 @@ export const useApiService = () => {
                 signal: config.signal,
             });
             return res.data;
-            // return res.data?.data ?? res.data;  //check fist back res
         } catch(err:any){
             if(err.code === "ERR_CANCELED"|| err.name === 'CanceledError' || err.message === "canceled"){
                 return;

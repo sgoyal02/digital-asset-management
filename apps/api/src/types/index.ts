@@ -40,8 +40,14 @@ export interface AssetUploadPayload{
 }
 
 export interface ReportPayload{
-  type:'USAGE_TRENDS'|'DUPLICATES';
+  type:'USAGE_TRENDS'|'DUPLICATES'|'COMPLIANCE';
   userId:number;
   role:string;
-  days?:number;
+  filters:ReportFilters
 }
+
+export type ReportFilters={
+  days?:number;
+  type?:string;
+  deptId?:number|null;
+};

@@ -61,7 +61,7 @@ export interface Asset {
   fileUrl:string;
   mimeType: string;
   size: number;
-  status: 'PENDING'|'UPLOADED'|'FAILED'|'UNDER_REVIEW'|'APPROVED'|'REJECTED'|'EXPIRED'| 'ARCHIVED';
+  status: 'PENDING'| 'PROCESSING' |'UPLOADED'|'FAILED'|'UNDER_REVIEW'|'APPROVED'|'REJECTED'|'EXPIRED'| 'ARCHIVED';
   ownerId: number;
   owner?: {
     name: string;
@@ -113,7 +113,13 @@ export interface DashReports{
 export const STATUS_COLORS:Record<string,string> = {
   APPROVED:"var(--color-success)",
   REJECTED:"var(--color-error)",
+  PENDING:"var(--color-warning)",
+  PROCESSING:"var(--color-info)",
   UPLOADED:"var(--color-primary-500)",
+  FAILED:"#f87171",
+  UNDER_REVIEW:"#a78bfa",
+  EXPIRED:"#f59e0b",
+  ARCHIVED:"var(--color-muted)",
 };
 
 export const TYPE_COLORS:Record<string,string> = {

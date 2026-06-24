@@ -12,14 +12,14 @@ const Dashboard = () => {
     useState<{isLoad:Boolean, data:DashReports|null, errTxt:string, days:number}>
     ({isLoad: false, data:null, errTxt:"", days:7});
     const {makeReq}= useApiService();
-    const typeData = reportsData.data?.byType?.map((item, i) => ({
-      ...item,
-      fill:TYPE_COLORS[item.name]|| "var(--color-secondary-300)"
-    }));
-    const statusData = reportsData.data?.byStatus?.map((item, i) => ({
-      ...item,
-      fill: STATUS_COLORS[item.name]|| "var(--color-secondary-300)"
-    }));
+    // const typeData = reportsData.data?.byType?.map((item, i) => ({
+    //   ...item,
+    //   fill:TYPE_COLORS[item.name]|| "var(--color-secondary-300)"
+    // }));
+    // const statusData = reportsData.data?.byStatus?.map((item, i) => ({
+    //   ...item,
+    //   fill: STATUS_COLORS[item.name]|| "var(--color-secondary-300)"
+    // }));
 
     useEffect(()=>{
       fetchStats();
@@ -209,7 +209,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="flex gap-1.5">
+      {/* <div className="flex gap-1.5">
         <ResponsiveContainer width="50%" height={180} className="rounded-md border border-dashed border-border">
         <PieChart>
         <Pie
@@ -222,7 +222,6 @@ const Dashboard = () => {
         <Tooltip />
         </PieChart>
       </ResponsiveContainer>
-      {/*todo--keep asset status and pie status in one? - type pie rpelace to top with usage*/}
       <ResponsiveContainer width="50%" height={180} 
       className="rounded-md border border-dashed border-border">
         <PieChart>
@@ -236,7 +235,7 @@ const Dashboard = () => {
         <Tooltip />
         </PieChart>
       </ResponsiveContainer>
-    </div>
+    </div> */}
 
       </div>
       }
