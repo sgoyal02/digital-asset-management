@@ -59,8 +59,10 @@ services:
       minio:
         condition: service_started
     volumes:
-      - ..:/app
-      - /app/node_modules
+      # - ..:/app
+      # - /app/node_modules
+      - ../apps/api:/app/apps/api
+      - api_node_modules:/app/apps/api/node_modules
     command: sh -c "cd apps/api && pnpm install && pnpm exec prisma migrate deploy && pnpm dev"
     # command: sh -c "cd apps/api && pnpm exec prisma migrate deploy && pnpm dev"
     # command: pnpm --filter api dev
@@ -74,16 +76,20 @@ services:
       - "5173:5173"
     environment:
       CI: "true"
+      CHOKIDAR_USEPOLLING: true
     env_file:
       - ../apps/web/.env
     depends_on:  #as not need backend to start, only need apis at run tym
       - api
     volumes:
-      - ..:/app
-      - /app/node_modules
-      # - /app/apps/web/node_modules
+      # - ..:/app
+      # - /app/node_modules
+      - ../apps/web:/app/apps/web
+      - web_node_modules:/app/apps/web/node_modules
 
 volumes:
   postgres_data:
   minio_data:
   rabbitmq_data:
+  api_node_modules:
+  web_node_modules:

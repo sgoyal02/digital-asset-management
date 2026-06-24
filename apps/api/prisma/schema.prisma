@@ -15,11 +15,12 @@ enum Role {
 
 enum AssetStatus {
   PENDING
+  PROCESSING
   UPLOADED
   FAILED
   UNDER_REVIEW
-  APPROVED
   REJECTED
+  APPROVED
   EXPIRED
   ARCHIVED
 }
@@ -135,11 +136,13 @@ model AssetCollection {
 
 model ReportCal{
   id Int @id @default(autoincrement())
-  type String    // 'USAGE_TRENDS'|'DUPLICATES'
-  role String   // 'admin'| 'user_Id'| 'manager_Id'
+  type String 
+  role String  
   days Int @default(5)
+  deptId Int?
+  assetType String?
   payload Json
   createdAt DateTime @default(now())
-  @@unique([type,role,days])
+  @@unique([type,role,days, assetType, deptId])
   @@map("report_cal")
 }
