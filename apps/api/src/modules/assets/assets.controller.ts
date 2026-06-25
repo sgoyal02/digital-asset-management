@@ -55,12 +55,13 @@ async reqReview(req:AuthReq, res:Response) {
   try {
     const assetId= Number(req.params.id);
     const userId= req.user!.id;
+    const role= req.user!.role;
     const asset= await prisma.asset.findUnique({where:{id:Number(assetId)}});
     if (!asset)return sendError(res, "asset not found", 404);
     if (asset.ownerId!== userId)return sendError(res, "own asset review allowed", 403);
     if (asset.status !== 'UPLOADED') return sendError(res, "review for uploaded status asset only", 400);
 
-    await markAssetStatus(Number(assetId), 'UNDER_REVIEW');
+    await markAssetStatus(Number(assetId), role==='ADMIN' ? "APPROVED": 'UNDER_REVIEW');
     sendSuccess(res, null, "asset sent for review", 201);
   } catch (err: any) {
     console.log("err catch: ", err);

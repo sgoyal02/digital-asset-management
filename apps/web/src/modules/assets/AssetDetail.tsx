@@ -103,6 +103,7 @@ const AssetDetail=() =>{
   console.log("id: ", param.id, param.collectionId);
   const [isReview, setReview] = useState<{process:boolean, err:string|null}>({process: false, err:null});
   const [asset, setAsset] = useState<{data:Asset|null, isLoad:boolean, err:string|null}>({data:null, isLoad: false, err:null});
+  const [reqReview, setReqReview] = useState<{process:boolean, err:string|null}>({process: false, err:null});
   const { makeReq } = useApiService();
   const navigate= useNavigate();
   const {user:currentUser}= useAuth();
@@ -174,6 +175,22 @@ const AssetDetail=() =>{
   window.URL.revokeObjectURL(url);
 };
 
+  const onReqReview=async()=>{
+    setReqReview((prev)=>({...prev, process: true, err:null}))
+    try {
+      const res = await makeReq({
+        method: 'PATCH',
+        url: `/assets/${param.id}/request-review`
+      });
+      const updated = res?.data || res;
+      setAsset((prev: any) => ({ ...prev, data: {...prev.data, status:currentUser?.role ==="ADMIN"? "APPROVED": "UNDER_REVIEW"} }));
+    } catch (err: any) {
+      setReqReview((prev)=>({...prev, err:err.message || "review action fail"}))
+    } finally {
+      setReqReview((prev)=>({...prev, process: false}))
+    }
+  }
+
   return (
     <div className="min-h-screen bg-base text-main-white">
       {asset.isLoad ?
@@ -185,7 +202,7 @@ const AssetDetail=() =>{
       :
       <div>
       <div className="sticky top-0 z-10 bg-header border-border backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-4">
+        <div className="max-w-6xl mx-auto px-2 py-4 flex flex-wrap items-center gap-4">
           <button
             onClick={onBack}
             className="p-1 rounded-md text-muted hover:text-main-white hover:bg-hover transition-colors"
@@ -194,16 +211,23 @@ const AssetDetail=() =>{
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1">
             <p className="text-xs text-muted mb-0.5 uppercase tracking-wider">Asset detail</p>
             <h1 className="text-base font-medium text-main-white truncate">{asset.data?.fileName}</h1>
           </div>
           <span className={`px-3 py-1 rounded-full text-xs font-medium`}>
               <StatusBadge status={asset.data?.status} />
           </span>
+          {isOwnAsset && asset.data?.status==="UPLOADED" &&
+          <button onClick={()=>onReqReview()}
+            disabled={reqReview.process}
+            className="flex items-center gap-2 p-2 rounded-md bg-info
+            hover:cursor-pointer hover:bg-info text-sm text-main-white transition-colors"
+          >Request Review</button>
+          }
           <button
             onClick={()=>handleDownload(asset.data?.fileName,asset.data?.fileUrl)}
-            className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary-700
+            className="flex items-center gap-2 p-2 rounded-md bg-primary-700
             hover:cursor-pointer hover:bg-primary-600 text-sm text-main-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,6 +237,10 @@ const AssetDetail=() =>{
           </button>
         </div>
       </div>
+        
+      {!!reqReview.err && (
+        <p className="text-error text-xs">{reqReview.err}</p>
+      )}
 
       <div className="max-w-6xl mx-auto py-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
