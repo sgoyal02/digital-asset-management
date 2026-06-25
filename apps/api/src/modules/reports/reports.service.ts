@@ -2,9 +2,9 @@
 import { prisma } from '../../lib/prisma';
 import { publishReport } from '../../queue/publisher';
 import { ReportFilters } from '../../types';
+import { calReport } from '../../workers/report.worker';
 
-const CACHE_MIN= 1;
-const roleKey=(role:string, uId:number)=> role=== 'ADMIN'? 'ADMIN': `${role}_${uId}`;
+const CACHE_MIN= 0.5;
 const isExp= (calAt:Date)=>{
   const tym= Date.now()- calAt.getTime();
   return tym> CACHE_MIN*60*1000;
@@ -13,22 +13,32 @@ const isExp= (calAt:Date)=>{
 export class ReportService{
   private async calData(type:'USAGE_TRENDS'|'DUPLICATES'|'COMPLIANCE', userId: number, role: string,filters:ReportFilters){
     const userRole= role=== 'ADMIN'? 'ADMIN': `${role}_${userId}`;
-    const days= filters.days?? 5;
-    const deptId= filters.deptId?? null;
-    const aType= filters.type??null;
+    const days= filters.days?? 7;
+    const deptId= filters.deptId?? -1;
+    const assetType= filters.assetType??'A';
+    const updatedFil:ReportFilters={days, assetType,deptId};
     const existData = await prisma.reportCal.findUnique({
-      where:{type_role_days:{type, role:userRole, days}},
-      // where:{type_role_days_assetType_deptId:{type, role:userRole, days, deptId, assetType:aType}},
+      where:{type_role_days_assetType_deptId:{type, role:userRole, days, assetType, deptId}},
     });
     console.log("servie existData: ", existData, isExp);
     if(existData && !isExp(existData.createdAt)) {
       return{data:existData.payload, fresh: true, createdAt:existData.createdAt};
     }
-    await publishReport({type,userId, role, days});
+    console.log("exi data calDtaa: ", existData);
+    await publishReport({type,userId, role, filters:updatedFil});
     if (existData) {
       return{data:existData.payload, fresh: false,createdAt:existData.createdAt};
     }
-    return{data: null, fresh: false, createdAt: null};
+    //cal if no cach
+    const payload= await calReport(type, userId, role, updatedFil);
+    
+    console.log("no data exist calDtaa: ", payload);
+    await prisma.reportCal.create({
+      data: { type, role: userRole, days, assetType, deptId, payload },
+    });
+
+    return { data: payload, fresh: true, createdAt: new Date()};
+    // return{data: null, fresh: false, createdAt: null};
   }
 
   async getUsageTrends(userId:number,role:string, filters:ReportFilters){

@@ -11,7 +11,7 @@ export class ReportController{
       const role= req.user!.role;
       // const days= Math.min(Number(req.query.days)|| 30, 90);
       const result = await reportService.getUsageTrends(userId,role,
-        {days:Number(req.query.days), type:req.query.type as string, deptId:Number(req.query.dept)}
+        {days:Number(req.query.days), assetType:req.query.type as string, deptId:Number(req.query.dept)}
       );
       sendSuccess(res, result, 'fetch success:usage trend report');
     }catch(err:any){
@@ -24,7 +24,7 @@ export class ReportController{
       const userId= req.user!.id;
       const role= req.user!.role;
       const result = await reportService.getDuplicates(userId,role,
-        {days:Number(req.query.days), type: req.query.type as string, deptId:Number(req.query.dept)}
+        {days:Number(req.query.days), assetType: req.query.type as string, deptId:Number(req.query.dept)}
       );
       sendSuccess(res, result, 'fetch success:duplicates report');
     }catch(err:any){
@@ -37,7 +37,7 @@ export class ReportController{
     const userId= req.user!.id;
     const role= req.user!.role;
     const result = await reportService.getCompliance(userId, role,
-      {days: Number(req.query.days), type:req.query.type as string, deptId:Number(req.query.dept)}
+      {days: Number(req.query.days), assetType:req.query.type as string, deptId:Number(req.query.dept)}
     );
     sendSuccess(res, result, "fetch success:compliance report");
   } catch (err:any) {

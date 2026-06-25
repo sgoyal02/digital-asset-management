@@ -48,6 +48,6 @@ export interface ReportPayload{
 
 export type ReportFilters={
   days?:number;
-  type?:string;
-  deptId?:number|null;
+  assetType?:string;
+  deptId?:number;
 };
