@@ -88,6 +88,7 @@ model Asset{
   //collections -to do
   collections AssetCollection[]
   usageLogs UsageLog[]
+  jobLogs JobLog[]
   @@map("assets")
 }
 model AssetVersion {
@@ -145,4 +146,17 @@ model ReportCal{
   createdAt DateTime @default(now())
   @@unique([type,role,days, assetType, deptId])
   @@map("report_cal")
+}
+
+model JobLog{
+  id Int @id @default(autoincrement())
+  type String //thumb/meta/expi/repport/dupe
+  assetId Int?
+  status String   // running/done/fail
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  duration Int? // ms
+  error String?
+  asset Asset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  @@map("job_logs")
 }
