@@ -12,14 +12,6 @@ const Dashboard = () => {
     useState<{isLoad:Boolean, data:DashReports|null, errTxt:string, days:number}>
     ({isLoad: false, data:null, errTxt:"", days:7});
     const {makeReq}= useApiService();
-    // const typeData = reportsData.data?.byType?.map((item, i) => ({
-    //   ...item,
-    //   fill:TYPE_COLORS[item.name]|| "var(--color-secondary-300)"
-    // }));
-    // const statusData = reportsData.data?.byStatus?.map((item, i) => ({
-    //   ...item,
-    //   fill: STATUS_COLORS[item.name]|| "var(--color-secondary-300)"
-    // }));
 
     useEffect(()=>{
       fetchStats();
@@ -44,7 +36,7 @@ const Dashboard = () => {
     try {
       if(!isPoling)
       setReportsData(prev => ({ ...prev, isLoad: true, errTxt: ''}));
-      const res = await makeReq({method: 'GET', url: `/reports/usage?days=${d}`});
+      const res = await makeReq({method: 'GET',url:'/reports/usage', params:{days:d, type:'A', dept:-1}});
       console.log("res report dash: ", res);
       if (!res.data?.data) {
         setTimeout(() =>fetchReports(d,true), 3000);

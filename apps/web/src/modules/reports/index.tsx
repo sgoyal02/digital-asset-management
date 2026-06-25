@@ -6,7 +6,7 @@ import { STATUS_COLORS, TYPE_COLORS } from '../../utils/types';
 
 const ReportsPage = () => {
   const { makeReq } = useApiService();
-  const [filters, setFilters] = useState({time:7, type:'A', dept:'A'})
+  const [filters, setFilters] = useState({time:7, type:'A', dept:'-1'})
   const [reportData, setReportData]=useState<{usage:any, compliance:any, dupes:any, isLoad:boolean, errC:string|null, errD:string|null, errU:string|null, err:string|null}>
   ({usage:null, compliance:null, dupes:null, isLoad: false, errU:null, errC:null, errD:null, err:null})
   
@@ -17,18 +17,19 @@ const ReportsPage = () => {
     { label:'Video', value:'V' }, { label:'Audio', value:'AU' }, {label:'Document', value:'D'}]
 
 
-  const fetchReports = useCallback(async () => {
+  const fetchReports = useCallback(async(f=filters) => {
   setReportData((prev)=>({...prev, isLoad: true, errC:null, errD:null, errU:null, err:null}))
+  console.log("fil pay: ", f);
   try{
   const[u,c,d]= await Promise.allSettled([
-    makeReq({method: 'GET',url:'/reports/usage', params:{days:filters.time, type:filters.type, dept: filters.dept}}),
-    makeReq({method: 'GET',url:'/reports/compliance', params:{days:filters.time, type:filters.type, dept: filters.dept}}),
-    makeReq({method: 'GET',url:'/reports/duplication' , params:{days:filters.time, type:filters.type, dept: filters.dept}}),
+    makeReq({method: 'GET',url:'/reports/usage', params:{days:f.time, type:f.type, dept: f.dept}}),
+    makeReq({method: 'GET',url:'/reports/compliance', params:{days:f.time, type:f.type, dept: f.dept}}),
+    makeReq({method: 'GET',url:'/reports/duplication' , params:{days:f.time, type:f.type, dept: f.dept}}),
   ]);
   console.log("ucd report: ", u,c,d);
   setReportData((prev)=>({...prev,
     usage:u.status=== 'fulfilled'? u.value?.data.data : null,
-    compliance:c.status=== 'fulfilled'? c.value?.data : null,
+    compliance:c.status=== 'fulfilled'? c.value?.data.data : null,
     dupes:d.status=== 'fulfilled'? d.value?.data.data : null,
     errU:u.status=== 'rejected'? 'failed to load usage data': null,
     errD:d.status=== 'rejected'? 'failed to load dupes data': null,
@@ -42,7 +43,7 @@ const ReportsPage = () => {
 }, [makeReq]);
 
   useEffect(() => {
-    fetchReports();
+    fetchReports(filters);
   }, [fetchReports]);
 console.log("rep: ", reportData);
 
@@ -51,6 +52,9 @@ console.log("rep: ", reportData);
     ...item, fill: TYPE_COLORS[item.name]|| "var(--color-secondary-300)"
   }));
   const statusData=reportData.usage?.byStatus?.map((item:{name:string, count:string}) => ({
+    ...item, fill: STATUS_COLORS[item.name]|| "var(--color-secondary-300)"
+  }));
+  const complianceData=reportData.compliance?.map((item:{name:string, count:string}) => ({
     ...item, fill: STATUS_COLORS[item.name]|| "var(--color-secondary-300)"
   }));
 
@@ -87,11 +91,11 @@ console.log("rep: ", reportData);
             className="bg-surface border border-border rounded-md p-2 
             text-sm focus:outline-none focus:border-primary-500"
           >
-            <option value="A">All Departments</option> {/* do for dept typ */}
+            <option value="-1">All Departments</option> {/* do for dept typ */}
           </select>
         </div>
 
-        <button onClick={fetchReports} disabled={reportData.isLoad}
+        <button onClick={()=>fetchReports(filters)} disabled={reportData.isLoad}
           className="ml-auto bg-primary-500 hover:bg-primary-600 hover:cursor-pointer 
           px-4 py-2 rounded-md transition-all disabled:opacity-40"
         > {'Run reports'}
@@ -144,30 +148,34 @@ console.log("rep: ", reportData);
           <div className="h-52 flex items-center justify-center text-muted text-sm">
               No uploads</div>
           :
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie data={reportData.compliance}
-                cx="50%" cy="50%"
-                innerRadius={70} outerRadius={110}
-                dataKey="count" nameKey="name"
-              >
-                {/* {(reportData.compliance||[])?.map((entry:any, index:number) => (
-                  <Cell key={`cell-${index}`} fill={['#22c55e', '#60a5fa', '#ef4444', '#8b5cf6', '#f59e0b'][index%5]} />
-                ))} */}
-              </Pie>
-              <Tooltip/>
-            </PieChart>
-          </ResponsiveContainer>
-          }
-          {/* <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-            {(reportData.compliance||[])?.map((item:any) => (
-              <div key={item.name} className="flex justify-between bg-surface rounded-md px-3 py-2">
-                <span className="text-gray">{item.name}</span>
-                <span className="font-sm text-main-white">{item.count}</span>
+          <div className='flex flex-col lg:flex-row items-center gap-8'>
+            <div className="shrink-0 w-full lg:w-1/2">
+           <ResponsiveContainer width={"100%"} height={200}>
+        <PieChart>
+        <Pie data={complianceData}
+          dataKey="count" nameKey="name" cx={"50%"} cy={"50%"}
+          outerRadius={70} innerRadius={40}
+        />
+        <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
+      </div>
+      <div className="w-full lg:w-1/2 space-y-3">
+            {(reportData.compliance||[])?.map((item:any) => {
+              const color= STATUS_COLORS[item.name]|| "var(--color-secondary-400)"
+              return(
+              <div key={item.name} className="flex items-center justify-start">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }}/>
+                  <span className="text-gray text-sm">{item.name}:</span>
+                </div>
+                <span className="text-sm text-main-white">{item.count}</span>
               </div>
-            ))}
-          </div> */}
+            )})}
         </div>
+        </div>
+      }
+       </div>
         
         {/*for file type n status- */}
           <div className="bg-card border border-border rounded-md p-4">

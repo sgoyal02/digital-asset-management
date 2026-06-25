@@ -120,6 +120,12 @@ export const STATUS_COLORS:Record<string,string> = {
   UNDER_REVIEW:"#a78bfa",
   EXPIRED:"#f59e0b",
   ARCHIVED:"var(--color-muted)",
+
+  Healthy: "var(--color-success)",
+  "Expiring Soon": "#f59e0b", // orange
+  Expired: "var(--color-error)",
+  Archived: "var(--color-muted)",
+  Rejected: "#ec4899",// pink
 };
 
 export const TYPE_COLORS:Record<string,string> = {
