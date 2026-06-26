@@ -9,6 +9,7 @@ import AssetDetail from "../modules/assets/AssetDetail";
 import Collections from "../pages/Collections";
 import CollectionDetail from "../modules/collections/CollectionDetail";
 import Reports from "../pages/Reports";
+import BackgroundJobs from "../modules/jobs_admin";
 
 
 export default function AppRoutes () {
@@ -25,6 +26,7 @@ export default function AppRoutes () {
                          <Route path={'collections/:id'} element={<CollectionDetail/>}/>
                          <Route path="collections/:collectionId/assets/:id" element={<AssetDetail />}/>
                          <Route path={"reports"} element={<Reports />}/>
+                         <Route path={"jobs"} element={<BackgroundJobs />}/>
                     </Route>
                 </Route>
             </Routes>

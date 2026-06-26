@@ -6,6 +6,19 @@ export const formatDate=(dateParam: string): string=> {
   });
 }
 
+export const formatFulltDate= (dateParam:string): string => {
+  const newDate=new Date(dateParam).toLocaleString('en-US', {
+    year:'2-digit',
+    month:'2-digit',
+    day:'numeric',
+    hour:'2-digit',
+    minute:'2-digit',
+    second:'2-digit',
+    hour12: true,
+  });
+  return newDate.replace(' at ', ' ');
+}
+
 
 export interface HeaderProp{
     toggleSidebar:()=>void
@@ -110,28 +123,13 @@ export interface DashReports{
   calUploads:{date:string, count:number}[];
 }
 
-export const STATUS_COLORS:Record<string,string> = {
-  APPROVED:"var(--color-success)",
-  REJECTED:"var(--color-error)",
-  PENDING:"var(--color-warning)",
-  PROCESSING:"var(--color-info)",
-  UPLOADED:"var(--color-primary-500)",
-  FAILED:"#f87171",
-  UNDER_REVIEW:"#a78bfa",
-  EXPIRED:"#f59e0b",
-  ARCHIVED:"var(--color-muted)",
-
-  Healthy: "var(--color-success)",
-  "Expiring Soon": "#f59e0b", // orange
-  Expired: "var(--color-error)",
-  Archived: "var(--color-muted)",
-  Rejected: "#ec4899",// pink
-};
-
-export const TYPE_COLORS:Record<string,string> = {
-  Image:"var(--color-primary-500)", 
-  Video:"var(--color-info)",
-  Audio:"var(--color-warning)", 
-  Doc:"var(--color-secondary-300)",
-  Other:"var(--color-secondary-400)",
-};
+export interface BackJobs{
+  id: number;
+  type: 'THUMBNAIL'|'METADATA'|'EXPIRY'|'REPORT'|'DUPLICATE';
+  assetName: string;
+  status:'RUNNING'|'DONE'|'FAILED';
+  startedAt:string;
+  completedAt:string;
+  duration:string;
+  err:string|null;
+}

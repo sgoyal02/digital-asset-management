@@ -9,7 +9,7 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import Ffmpeg from '../lib/ffmpeg';
-import { markAssetStatus } from '../types/helper';
+import { jobDone, jobFailed, jobStart, markAssetStatus } from '../types/helper';
 
 const BUCKET = 'assets';
 const THUMB_BUCKET = 'thumbnails';
@@ -45,6 +45,7 @@ export const thumbnailWorker=async() => {
     console.log("thum msg: ", msg);
     if (!msg) return;
     const {assetId,fileKey,mimeType}:AssetUploadPayload=JSON.parse(msg.content.toString());
+    const logId= await jobStart('THUMBNAIL', assetId);
     try {
       await markAssetStatus(assetId, 'PROCESSING');
       const isThumbBkt=await minioClient.bucketExists(THUMB_BUCKET);
@@ -63,6 +64,7 @@ export const thumbnailWorker=async() => {
         await prisma.asset.update({where:{id:assetId},data:{thumbnailUrl: null}}); //audio,doc
         ch.ack(msg);
         await markAssetStatus(assetId, 'UPLOADED');
+        await jobDone(logId);
         return;
       }
 
@@ -78,9 +80,11 @@ export const thumbnailWorker=async() => {
       }
       ch.ack(msg);
       await markAssetStatus(assetId, 'UPLOADED');
-    } catch (err) {
+      await jobDone(logId);
+    } catch (err:any) {
       console.error("thumb worker fail: ", err);
       await markAssetStatus(assetId, 'FAILED');
+      await jobFailed(logId, err.message);
       ch.nack(msg, false, false);
     }
   });

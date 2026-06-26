@@ -3,19 +3,23 @@ import file from '../../images/file.svg';
 import dashIcon from '../../images/dashboard.svg';
 import folder from '../../images/folder.svg';
 import report from '../../images/report.svg';
+import work from '../../images/work.svg';
+import { User } from '../../utils/types';
 
 const menuItems = [
   { to: ".", label: "Dashboard", icon: dashIcon}, 
   { to: "assets", label: "Assets Overview", icon: file },
   { to: "collections", label: "Collections", icon: folder },
   { to: "reports", label: "Reports", icon: report },
+  { to: "jobs", label: "Background Process", icon: work },
 ];
 
 interface SideBarProp{
-    isOpen:boolean
+    isOpen:boolean;
+    user:User|null;
 }
 
-const Sidebar = ({isOpen}:SideBarProp) => {
+const Sidebar = ({isOpen, user}:SideBarProp) => {
   return (
     <aside className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-surface border-r border-border z-40 
                   transition-all duration-300 overflow-hidden
@@ -23,7 +27,7 @@ const Sidebar = ({isOpen}:SideBarProp) => {
      >
       <div className="py-4 px-2">
         <nav className="space-y-1.5">
-          {menuItems.map((item) => {
+          {(user?.role === "ADMIN" ? menuItems : menuItems.slice(0,-1)).map((item) => {
             return (
               <NavLink
                 key={item.to}
