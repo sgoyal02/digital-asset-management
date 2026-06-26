@@ -2,7 +2,7 @@ import { prisma } from '../lib/prisma';
 import { getChannel } from '../queue/connection';
 import { QUEUES } from '../queue/queues';
 import { ReportFilters, ReportPayload } from '../types';
-import { whereExpReport } from '../types/helper';
+import { jobDone, jobFailed, jobStart, whereExpReport } from '../types/helper';
 
 const roleKey=(role:string, uId:number)=> role=== 'ADMIN'? 'ADMIN': `${role}_${uId}`;
 
@@ -106,6 +106,7 @@ export const reportWorker= async()=> {
     if(!msg) return;
     const{type,userId,role,filters}:ReportPayload= JSON.parse(msg.content.toString());
     console.log("rep worker in: ", filters);
+    const logId= await jobStart('REPORT');
     try{
       let payload: any;
       payload= await calReport(type, userId, role, filters);
@@ -117,8 +118,10 @@ export const reportWorker= async()=> {
         update:{payload, createdAt:new Date()},
       });
       ch.ack(msg);
+      await jobDone(logId);
     }catch(err:any) {
       console.error("report worker fail:", err);
+      await jobFailed(logId, err.message);
       ch.nack(msg,false,false);
     }
   });

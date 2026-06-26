@@ -9,7 +9,7 @@ export class JobsController{
   async getJobs(req:AuthReq, res:Response) {
     try {
       if (req.user!.role!== 'ADMIN') {
-        return sendError(res, 'access denie', 403);
+        return sendError(res, 'access deny', 403);
       }
       const limit=Number(req.query.limit)|| 10;
       const newJobs= await jobsService.getJobs(limit);

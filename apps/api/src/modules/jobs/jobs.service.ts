@@ -1,4 +1,3 @@
-// modules/jobs/jobs.service.ts
 import { prisma } from '../../lib/prisma';
 
 export class JobsService {
@@ -8,10 +7,10 @@ export class JobsService {
       include:{asset:{ select:{fileName:true}}}
     });
     return jobs.map((j:any) => ({
-      id:j.id,type: j.type,assetName: j.asset?.fileName ?? '-',
-      status:j.status,startedAt: j.startedAt,completedAt: j.finishedAt,
+      id:j.id,type: j.type,assetName: j.asset?.fileName?? '-',
+      status:j.status,startedAt: j.startedAt,completedAt: j.completedAt,
       duration:j.duration? `${(j.duration/1000).toFixed(1)}s` : '-',
-      error:j.error?? null,
+      err:j.error?? null,
     }));
   }
 }
