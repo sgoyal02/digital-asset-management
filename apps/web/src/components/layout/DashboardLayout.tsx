@@ -2,9 +2,11 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../hooks/AuthContext';
 
 const DashboardLayout = () => {
     const [isOpen, setOpen] = useState(true);
+    const {user:currUser} = useAuth();
 
   useEffect(() => {
     const handleResize = () => {
@@ -23,7 +25,7 @@ const DashboardLayout = () => {
     <div className="min-h-screen bg-base text-main-white">
       <Header toggleSidebar={() => setOpen(!isOpen)}/>
       <div className="flex pt-16">
-        <Sidebar isOpen={isOpen}/>
+        <Sidebar isOpen={isOpen} user={currUser}/>
         <main className={`flex-1 p-6 min-w-0 md:p-8 min-h-[calc(100vh-4rem)] transition-all duration-300
           ${isOpen ? 'ml-64' : 'ml-20'}`}>
           <Outlet/>

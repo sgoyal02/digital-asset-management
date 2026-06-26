@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useApiService } from "../services/useApiService";
-import { STATUS_COLORS, TYPE_COLORS, type DashboardStats, type DashReports } from "../utils/types";
+import {type DashboardStats, type DashReports } from "../utils/types";
 import ErrorMsg from "../components/ErrorMsg";
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -176,7 +176,7 @@ const Dashboard = () => {
         {/* process-status-- */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-card border border-border rounded-md p-4 h-[250px]">
-            <h3 className="text-sm font-semibold mb-2">Asset Status</h3>
+            <h3 className="text-sm font-semibold mb-10">Asset Status (%)</h3>
             <div className="space-y-6">
               <div>
                 <div className="flex justify-between text-sm mb-2">

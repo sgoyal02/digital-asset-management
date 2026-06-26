@@ -1,12 +1,12 @@
 import { prisma } from '../../lib/prisma';
 import { addDays } from 'date-fns';
+import { whereExpReport } from '../../types/helper';
 
 export class DashboardService{
   async getStats(userId:number, role:string) {
     const currDate = new Date();
-    const totalAssets = await prisma.asset.count({
-      where: role === 'ADMIN' ? {} : {ownerId:userId }
-    });
+    const whereScope= await whereExpReport(role,userId);
+    const totalAssets = await prisma.asset.count({where:whereScope});
 
     const expring=await prisma.asset.count({
       where:{
@@ -14,7 +14,7 @@ export class DashboardService{
           gte: currDate, //greaterthan equal
         },
         isArchived: false,
-        ...(role !== 'ADMIN' && {ownerId: userId })
+        ...whereScope
       }
     });
 
@@ -22,7 +22,7 @@ export class DashboardService{
     const risk=await prisma.asset.count({
       where: {
         OR: [{status:'EXPIRED'},{status:'REJECTED'}],
-        ...(role !== 'ADMIN' && {ownerId:userId })
+        ...whereScope
       }
     });
 
@@ -31,19 +31,17 @@ export class DashboardService{
       by: ['fileHash'],
        _count:{id:true},  //--file count in each grp
       having:{id:{_count:{gt: 1}}}, //take grp with >1 file count
-     where: {fileHash:{not:null},
-        ...(role !== 'ADMIN' && { ownerId: userId }),
-      },
-});
-const dupes = dupesGroup.length;
+     where: {fileHash:{not:null}, ...whereScope},
+    });
+    const dupes = dupesGroup.length;
 
     const processing= await prisma.asset.groupBy({
       by:['status'], _count:{id:true},
-      where:{status:{in:['PENDING', 'FAILED']},
-        ...(role !== 'ADMIN' && { ownerId: userId })
+      where:{status:{in:['UNDER_REVIEW', 'FAILED']},
+        ...whereScope
       }
     });
-    const pending = processing.find((p:any) =>p.status === 'PENDING')?._count.id || 0;
+    const pending = processing.find((p:any) =>p.status === 'UNDER_REVIEW')?._count.id || 0;
     const failed = processing.find((p:any) =>p.status === 'FAILED')?._count.id || 0;
     const total = pending + failed;
     const pendingPer = total? Math.round((pending/total)* 100): 0;

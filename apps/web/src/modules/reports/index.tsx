@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 import { useApiService } from '../../services/useApiService';
 import ErrorMsg from '../../components/ErrorMsg';
-import { STATUS_COLORS, TYPE_COLORS } from '../../utils/types';
+import { STATUS_COLORS, TYPE_COLORS } from '../../utils/helpers';
 
 const ReportsPage = () => {
   const { makeReq } = useApiService();
