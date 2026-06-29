@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: postgres_db
+    env_file: 
+      - ./postgres.env
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    env_file: 
+      - ./minio.env
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/mnesia
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile.prod
+    container_name: api
+    env_file: 
+      - ../apps/api/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+      minio:
+        condition: service_started
+    command: sh -c "pnpm prisma migrate deploy && npm start"
+    restart: unless-stopped
+
+  # web:
+  #   build:
+  #     context: ..
+  #     dockerfile: apps/web/Dockerfile.prod
+  #   container_name: web-build
+  #   depends_on:
+  #     - api
+  #   restart: unless-stopped
+
+  nginx:
+    build:
+      context: ..
+      dockerfile: infra/nginx/Dockerfile
+    container_name: nginx
+    ports:
+      - "80:80"
+      # - "443:443"   #for ssl
+    # volumes:
+    #   - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # - ./nginx/ssl:/etc/nginx/ssl:ro   #for sslcert-chk?
+      # - web_build:/usr/share/nginx/html
+    depends_on:
+      - api
+      # - web
+
+volumes:
+  postgres_data:
+  minio_data:
+  rabbitmq_data:
+  # web_build:
