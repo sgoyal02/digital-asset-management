@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BackJobs, formatFulltDate } from "../../utils/types";
 import { useApiService } from "../../services/useApiService";
 import { JOB_STATUS_STYLE, JOB_TYPE_LABEL } from "../../utils/helpers";
 
-
+const POLL_IDLE=10000;
+const POLL_RUN=4000;
 const BackgroundJobs=()=>{
     const [jobs, setJobs]= useState<{isLoad:Boolean, data:BackJobs[]|null, errTxt:string|null, lastRun:Date|null}>
             ({isLoad: false, data:null, errTxt:null, lastRun:null});
     const {makeReq}= useApiService();
-    const polRef= useRef<ReturnType<typeof setInterval>| null>(null);
+    const pollRef = useRef<ReturnType<typeof setInterval>| null>(null);
     const jobHeaders:{ id:keyof BackJobs; label:string}[]=[
         {id:"type", label:'Job Type'},
         {id:"assetName", label:'Asset'},
@@ -18,18 +19,22 @@ const BackgroundJobs=()=>{
         {id:"completedAt", label:'Completed'},
         {id:"err", label:'Error'}
     ]
+    const verRef= useRef<number>(0);
+    const mountRef=useRef<boolean|null>(null);
 
   const fetchBackJobs= useCallback(async() => {
     setJobs((prev)=>({...prev, isLoad: true, errTxt:null}));
     try{
       const res= await makeReq({method: "GET", url: "/jobs?limit=50"});
-    //   setJobs((prev)=>({...prev, isLoad: false, data:res?.data||null, lastRun: new Date()}));
-      setJobs((prev)=> {
-        const same= JSON.stringify(prev.data)=== JSON.stringify(res?.data);
-        if(same) return prev;
-        return{...prev, data: res?.data || null, lastRun: new Date()};
-        });
+      if(!mountRef.current) return;
+      if(res.data.lastUpdated === verRef.current) return;
+
+      verRef.current=res.data.lastUpdated;
+      setJobs((prev)=>({
+        ...prev, data: res.data?.data||null, lastRun: new Date()
+      }));
     }catch(err:any) {
+      if(!mountRef.current) return;
       console.error("job err:", err);
       setJobs((prev)=>({...prev, errTxt:err.message||'failed to fetch jobs'}));
     }finally{
@@ -38,17 +43,39 @@ const BackgroundJobs=()=>{
   }, [makeReq]);
 
   
-  const hasCurrRun= jobs.data?.some((j)=>j.status=== "RUNNING");
+  const hasCurrRun=useMemo(()=>{
+    return jobs.data?.some((j)=>j.status=== "RUNNING") ?? false;
+  },[jobs.data]);
 
   useEffect(() => {
     fetchBackJobs();
-    if(hasCurrRun)
-    polRef.current= setInterval(fetchBackJobs, 4000);
-
-    return() => {
-      if(polRef.current) clearInterval(polRef.current);
-    };
   }, [fetchBackJobs]);
+
+  useEffect(() => {
+  mountRef.current = true;
+  return () => {
+    mountRef.current = false;
+  };
+}, []);
+
+  useEffect(()=>{
+    const startPoll=()=>{
+       if(pollRef.current){
+        clearInterval(pollRef.current);
+        }
+      pollRef.current= setInterval(()=> {
+      fetchBackJobs();
+      },hasCurrRun? POLL_RUN: POLL_IDLE);
+    }
+    startPoll();
+
+    return()=>{
+      if(pollRef.current){
+        clearInterval(pollRef.current);
+        pollRef.current=null;
+      }
+    }
+  },[hasCurrRun, fetchBackJobs]);
 
 
     return(

@@ -65,11 +65,12 @@ console.log("rep: ", reportData);
       </div>
       {/* filters */}
       <div className="bg-card border border-border rounded-md p-3 flex flex-wrap gap-3 items-end">
+        <div className='grid flex-1 min-w-0 gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
         <div>
           <label className="block text-xs font-medium text-gray mb-2">Time Range</label>
           <select value={filters.time} onChange={(e) => setFilters((prev)=>({...prev, time:Number(e.target.value)}))}
           className="bg-surface border border-border rounded-md p-2 text-sm 
-          focus:outline-none focus:border-primary-500"
+          focus:outline-none focus:border-primary-500 w-full"
           >{TIME_OPTIONS.map((range) => (
               <option key={range.value} value={range.value}>{range.label}</option>
             ))}
@@ -78,25 +79,25 @@ console.log("rep: ", reportData);
         <div>
           <label className="block text-xs font-medium text-gray mb-2">Asset type</label>
           <select value={filters.type} onChange={(e)=> setFilters((prev)=>({...prev, type:e.target.value}))}
-            className="bg-surface border border-border rounded-md p-2
+            className="bg-surface border border-border rounded-md p-2 w-full
             text-sm focus:outline-none focus:border-primary-500"
           >{ASSET_TYPES.map((type) => (
               <option key={type.value} value={type.value}>{type.label}</option>
             ))}
           </select>
         </div>
-        <div>
+        {/* <div>
           <label className="block text-xs font-medium text-gray mb-2">Department</label>
           <select value={filters.dept} onChange={(e)=> setFilters((prev)=>({...prev, dept:e.target.value}))}
             className="bg-surface border border-border rounded-md p-2 
             text-sm focus:outline-none focus:border-primary-500"
           >
-            <option value="-1">All Departments</option> {/* do for dept typ */}
+            <option value="-1">All Departments</option>
           </select>
+        </div> */}
         </div>
-
         <button onClick={()=>fetchReports(filters)} disabled={reportData.isLoad}
-          className="ml-auto bg-primary-500 hover:bg-primary-600 hover:cursor-pointer 
+          className="bg-primary-500 hover:bg-primary-600 hover:cursor-pointer 
           px-4 py-2 rounded-md transition-all disabled:opacity-40"
         > {'Run reports'}
         </button>

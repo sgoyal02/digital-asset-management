@@ -6,11 +6,19 @@ export class JobsService {
       orderBy:{startedAt:'desc'},take: limit,
       include:{asset:{ select:{fileName:true}}}
     });
-    return jobs.map((j:any) => ({
+    const jobsData= jobs.map((j:any) => ({
       id:j.id,type: j.type,assetName: j.asset?.fileName?? '-',
       status:j.status,startedAt: j.startedAt,completedAt: j.completedAt,
       duration:j.duration? `${(j.duration/1000).toFixed(1)}s` : '-',
       err:j.error?? null,
     }));
+
+    const lastUpdated= jobs.length ? 
+          jobs.reduce((maxTym, j)=>
+              Math.max(maxTym, new Date(j.startedAt).getTime(), 
+          (j.completedAt ? new Date(j.completedAt).getTime(): 0))
+          ,0)
+         : 0;
+    return{data:jobsData, lastUpdated};
   }
 }
