@@ -4,7 +4,7 @@ services:
     container_name: postgres_db
     env_file: 
       - ./postgres.env
-    volumes:
+    volumes:  #bcz state , not stateless
       - postgres_data:/var/lib/postgresql
     restart: unless-stopped
 
@@ -49,12 +49,6 @@ services:
 
   # web:
   #   build:
-  #     context: ..
-  #     dockerfile: apps/web/Dockerfile.prod
-  #   container_name: web-build
-  #   depends_on:
-  #     - api
-  #   restart: unless-stopped
 
   nginx:
     build:
@@ -62,12 +56,7 @@ services:
       dockerfile: infra/nginx/Dockerfile
     container_name: nginx
     ports:
-      - "80:80"
-      # - "443:443"   #for ssl
-    # volumes:
-    #   - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      # - ./nginx/ssl:/etc/nginx/ssl:ro   #for sslcert-chk?
-      # - web_build:/usr/share/nginx/html
+      - "80:80" 
     depends_on:
       - api
       # - web
@@ -76,4 +65,3 @@ volumes:
   postgres_data:
   minio_data:
   rabbitmq_data:
-  # web_build:

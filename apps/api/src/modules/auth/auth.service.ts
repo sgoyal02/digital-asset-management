@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 export class AuthService {
   async login(email: string, password: string) {
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email, password },
       // include:{department: true},
       select: {
         id: true,email: true,name: true,role: true,password: true,
