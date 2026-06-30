@@ -1,0 +1,46 @@
+name: Api CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare pnpm
+        run: corepack prepare pnpm@11.5.1 --activate
+
+      - name: Dependencies install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma client generat
+        run: pnpm --filter api prisma generate
+
+      - name: Api build
+        run: pnpm --filter api build
