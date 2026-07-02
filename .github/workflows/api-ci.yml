@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "apps/api/**"
+      - ".github/workflows/api-ci.yml"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
