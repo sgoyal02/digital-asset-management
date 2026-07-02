@@ -11,9 +11,10 @@ export class DashboardController{
             const role= req.user!.role;
             const stats= await dashboardService.getStats(userId, role);
             sendSuccess(res, stats, "Dashboard stats fetch success");
-        }catch(err:any){
-            const code= err.statusCode || 500;
-            return sendError(res, err.message, code);
+        }catch(err:unknown){
+            const errMsg= err as {data:{message:string, statusCode?:number}};
+            const code= errMsg.data.statusCode || 500;
+            return sendError(res, errMsg.data.message, code);
         }
     } 
 }

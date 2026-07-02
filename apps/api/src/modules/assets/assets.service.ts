@@ -1,8 +1,9 @@
-import { User } from "../../generated/prisma/client";
+import { Prisma, User } from "../../generated/prisma/client";
 import { minioClient } from "../../lib/minio";
 import { prisma } from "../../lib/prisma";
 import crypto from 'node:crypto';
 import { publishAssetUpload } from "../../queue/publisher";
+import { HttpError } from "../../types/helper";
 
 const BUCKET = "assets";
 
@@ -51,11 +52,12 @@ export class AssetService {
     // await minioClient.putObject(BUCKET, objName, file.buffer, file.size, metaData);
     try {
   await minioClient.putObject(BUCKET, objName, file.buffer, file.size, metaData);
-} catch (minioErr: any) {
-  throw new Error(`minio upload fail: ${minioErr.message || minioErr}`);
+} catch (minioErr: unknown) {
+  const errMsg = minioErr as { data: {message:string}};
+  throw new Error(`minio upload fail: ${errMsg.data.message || minioErr}`);
 }
     //queries seq
-   const res = await prisma.$transaction(async(tx:any) => {
+   const res = await prisma.$transaction(async(tx) => {
     let newAsset;
       if (!asset) {
         newAsset = await tx.asset.create({
@@ -129,7 +131,7 @@ export class AssetService {
   }
 
   async getAssets(userId: number, role: string,search?:string, managerId?:number) {
-    let where:any= {};
+    let where:Prisma.AssetWhereInput= {};
     if(role==="ADMIN") where={}
     else if(role ==="USER"){
       where={ownerId: userId};
@@ -175,14 +177,10 @@ export class AssetService {
     },
   });
   if (!asset) {
-    const err:any= new Error('asset not found');
-    err.statusCode = 404;
-    throw err;
+    throw new HttpError('asset not found', 404);
   }
   if (role=== 'USER' && asset.ownerId!== userId) {
-    const err: any = new Error('access denied to this asset');
-    err.statusCode = 403;
-    throw err;
+    throw new HttpError('access denied to this asset', 403);
   }
   //for manager
   if (role=== 'MANAGER' && asset.ownerId !== userId) {
@@ -192,9 +190,7 @@ export class AssetService {
     });
     const teamIds = team.map((u) => u.id);
     if (!teamIds.includes(asset.ownerId)) {
-      const err: any = new Error('access denie- not team asset');
-      err.statusCode = 403;
-      throw err;
+      throw new HttpError('access denied- not team asset', 403);
     }
   }
   //admin
@@ -206,35 +202,25 @@ export class AssetService {
   async reviewAsset(assetId:number,reviewerId: number,role: string, action:'APPROVED'|'REJECTED') {
     const asset= await prisma.asset.findUnique({where:{id:assetId}});
     if (!asset) {
-      const err:any = new Error('asset not found');
-      err.statusCode = 404;
-      throw err;
+      throw new HttpError('asset not found', 404);
     }
     if (role=== 'USER') {
-      const err: any = new Error('user can not review:access denied');
-      err.statusCode = 403;
-      throw err;
+      throw new HttpError('user can not review:access denied', 403);
     }
     if (asset.ownerId=== reviewerId) { //own file not review
-      const err: any = new Error('cannot review own asset');
-      err.statusCode = 403;
-      throw err;
+      throw new HttpError('cannot review own asset', 403);
     }
     
     //mangaer-team review
     if (role=== 'MANAGER') {
       const owner= await prisma.user.findUnique({ where:{id:asset.ownerId}});
       if (owner?.managerId!== reviewerId) {
-        const err: any = new Error('not team asset:access denied');
-        err.statusCode = 403;
-        throw err;
+        throw new HttpError('not team asset:access denied', 403);
       }
     }
     //status basis
     if (asset.status!== 'UNDER_REVIEW') {
-      const err:any= new Error('based on asset status- can not review');
-      err.statusCode = 400;
-      throw err;
+      throw new HttpError('based on asset status- can not review', 400);
     }
 
     const updated = await prisma.asset.update({

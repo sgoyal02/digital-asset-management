@@ -1,8 +1,10 @@
+import { Prisma } from "../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
+import { HttpError } from "../../types/helper";
 
 export class CollectionService{
  async getAllCollections(userId:number,role: string,excludeId?: number) {
-    let where:any;
+    let where:Prisma.CollectionWhereInput;
     if(role === "ADMIN") {where = {}} 
     else {
       where = {
@@ -50,14 +52,10 @@ export class CollectionService{
       where:{id:cId},
     });
     if(!cData) {
-      const err: any = new Error("collection not found");
-      err.statusCode = 404;
-      throw err;
+      throw new HttpError("collection not found", 404);
     }
-    if(!cData.isShared&& cData.ownerId !== userId && role !== "ADMIN") { 
-      const err: any = new Error("collection view-access denied"); //for admin/own only
-      err.statusCode = 403;
-      throw err;
+    if(!cData.isShared&& cData.ownerId !== userId && role !== "ADMIN") {
+      throw new HttpError("collection view-access denied", 403); //for admin/own only
     }
 
     //view checksfor asset
@@ -98,14 +96,10 @@ export class CollectionService{
   async delCollectoin(cId: number,userId: number,role: string) {
     const cData = await prisma.collection.findUnique({where:{id:cId}});
     if(!cData) {
-      const err:any = new Error("collection not found");
-      err.statusCode = 404;
-      throw err;
+      throw new HttpError("collection not found", 404);
     }
     if(cData.ownerId!== userId && role !== "ADMIN") {
-      const err:any= new Error("collectoin del denied-access for own, admin");
-      err.statusCode= 403;
-      throw err;
+      throw new HttpError("collectoin del denied-access for own-admin", 403);
     }
     await prisma.collection.delete({where:{id:cId}});
     return {deleted:true};
@@ -114,14 +108,10 @@ export class CollectionService{
   async addAssets(cId:number,aIds: number[],userId: number,role: string) {
     const c= await prisma.collection.findUnique({where:{id:cId}});
     if(!c) {
-      const err: any = new Error("collection not exis");
-      err.statusCode = 404;
-      throw err;
+      throw new HttpError("collection not exist", 404);
     }
     if(!c.isShared && c.ownerId!== userId && role!== "ADMIN") {
-      const err: any = new Error("collection access denied");
-      err.statusCode = 403;
-      throw err;
+      throw new HttpError("collection access denied", 403);
     }
     const data=aIds.map((aId)=>({assetId:aId, collectionId:cId}));
     console.log('inserting:', data);
@@ -134,14 +124,10 @@ export class CollectionService{
   async delAsset(cId: number,aId: number,userId: number, role: string) {
     const c = await prisma.collection.findUnique({ where:{id:cId} });
     if(!c){
-      const err:any = new Error("collection not found");
-      err.statusCode = 404;
-      throw err;
+      throw new HttpError("collection not found", 404);
     }
     if(!c.isShared && c.ownerId!== userId && role !== "ADMIN") {
-      const err: any = new Error("collection access denied");
-      err.statusCode = 403;
-      throw err;
+      throw new HttpError("collection access denied", 403);
     }
     
     await prisma.assetCollection.delete({
@@ -153,24 +139,18 @@ export class CollectionService{
   //del from c1-add to c2
   async moveAsset(currId: number,aId: number,destId: number,userId: number,role: string){
     if(currId=== destId) {
-      const err: any = new Error("curr and dest collection same");
-      err.statusCode = 400;
-      throw err;
+      throw new HttpError("curr and dest collecion same", 400);
     }
     const [curr,dest]=await Promise.all([
       prisma.collection.findUnique({ where: { id: currId } }),
       prisma.collection.findUnique({ where: { id: destId } }),
     ]);
     if(!curr || !dest) {
-      const err:any = new Error("collection not found");
-      err.statusCode = 404;
-      throw err;
+      throw new HttpError("collection not found", 404);
     }
     const allowShare= (c:typeof curr)=>c!.isShared|| c!.ownerId=== userId|| role === "ADMIN";
     if(!allowShare(curr)|| !allowShare(dest)) {
-      const err: any = new Error("coolection access denied");
-      err.statusCode = 403;
-      throw err;
+      throw new HttpError("collection access denied", 403);
     }
 
     await prisma.$transaction([prisma.assetCollection.deleteMany({

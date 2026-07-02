@@ -12,9 +12,10 @@ export class CollectionController{
       const excludeId= req.query.exclude?Number(req.query.exclude) : undefined; //curr col not include
       const collections= await collectionService.getAllCollections(userId,role, excludeId);
       sendSuccess(res, collections, "Collections fetched successfully");
-    } catch (err: any) {
-      const code= err.statusCode || 500;
-      return sendError(res,err.message, code);
+    } catch (err: unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      const code= errMsg.data.statusCode || 500;
+      return sendError(res,errMsg.data.message, code);
     }
   }
  
@@ -29,9 +30,10 @@ export class CollectionController{
       }
       const data = await collectionService.createCollection(userId,role,name,desc,isShared);
       sendSuccess(res,data,"collection created success", 201);
-    } catch (err: any) {
-      const code = err.statusCode || 500;
-      return sendError(res, err.message, code);
+    } catch (err: unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      const code = errMsg.data.statusCode || 500;
+      return sendError(res, errMsg.data.message, code);
     }
   }
 
@@ -46,9 +48,10 @@ export class CollectionController{
     const data = await collectionService.getCollectionDetail(cId,userId,role);
     console.log("data detail collect: ", data);
     sendSuccess(res, data, "collection detail fetch success");
-    } catch(err:any) {
-    const code= err.statusCode || 500;
-    return sendError(res, err.message, code);
+    } catch(err:unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+    const code= errMsg.data.statusCode || 500;
+    return sendError(res, errMsg.data.message, code);
     }
   }
 
@@ -62,9 +65,10 @@ export class CollectionController{
     }
     const result = await collectionService.delCollectoin(cId,userId, role);
     sendSuccess(res, result, "collection del success");
-    } catch(err:any) {
-      const code= err.statusCode|| 500;
-      return sendError(res, err.message, code);
+    } catch(err:unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      const code= errMsg.data.statusCode|| 500;
+      return sendError(res, errMsg.data.message, code);
     }
   }
 
@@ -80,9 +84,10 @@ export class CollectionController{
       }
       const result = await collectionService.addAssets(cId,assetIds, userId, role);
       sendSuccess(res,result, "asset add in collection success");
-    } catch (err:any) {
-      const code= err.statusCode || 500;
-      return sendError(res,err.message, code);
+    } catch (err:unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      const code= errMsg.data.statusCode || 500;
+      return sendError(res,errMsg.data.message, code);
     }
   }
  
@@ -95,9 +100,10 @@ export class CollectionController{
  
       const result = await collectionService.delAsset(cId,aId,userId, role);
       sendSuccess(res,result, "asset rmeove success");
-    } catch (err:any) {
-      const code= err.statusCode|| 500;
-      return sendError(res,err.message, code);
+    } catch (err:unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      const code= errMsg.data.statusCode|| 500;
+      return sendError(res,errMsg.data.message, code);
     }
   }
  
@@ -113,9 +119,10 @@ export class CollectionController{
       }
       const result= await collectionService.moveAsset(cId, aId, Number(destId), userId, role);
       sendSuccess(res,result, "asset move success");
-    } catch(err:any) {
-      const code= err.statusCode|| 500;
-      return sendError(res,err.message,code);
+    } catch(err:unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      const code= errMsg.data.statusCode|| 500;
+      return sendError(res,errMsg.data.message,code);
     }
   }
  

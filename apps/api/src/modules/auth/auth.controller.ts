@@ -13,9 +13,10 @@ export class AuthController{
       }
       const result = await authService.login(email, password);
       return sendSuccess(res, result,'Login success')
-    } catch (error: any) {
-      const code= error.statusCode || 500;
-      return sendError(res, error.message, code);
+    } catch (err: unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      const code= errMsg.data.statusCode || 500;
+      return sendError(res, errMsg.data.message, code);
     }
   }
 }

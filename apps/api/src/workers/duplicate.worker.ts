@@ -30,9 +30,10 @@ export const duplicateWorker = async () => {
       }
       ch.ack(msg);
       await jobDone(logId);
-    } catch (err:any) {
+    } catch (err:unknown) {
       console.error("dupe worker fai err: ", err);
-      await jobFailed(logId, err.message);
+      const errMsg= err as {data:{message:string, statusCode?:number}};
+      await jobFailed(logId, errMsg.data.message);
       ch.nack(msg, false, false);
     }
   });

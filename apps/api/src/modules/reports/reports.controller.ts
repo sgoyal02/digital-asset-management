@@ -14,8 +14,9 @@ export class ReportController{
         {days:Number(req.query.days), assetType:req.query.type as string, deptId:Number(req.query.dept)}
       );
       sendSuccess(res, result, 'fetch success:usage trend report');
-    }catch(err:any){
-      return sendError(res, err.message, err.statusCode|| 500);
+    }catch(err:unknown){
+      const errMsg= err as { data: {message:string, statusCode?:number}};
+      return sendError(res, errMsg.data.message, errMsg.data.statusCode|| 500);
       }
     }
   
@@ -27,8 +28,9 @@ export class ReportController{
         {days:Number(req.query.days), assetType: req.query.type as string, deptId:Number(req.query.dept)}
       );
       sendSuccess(res, result, 'fetch success:duplicates report');
-    }catch(err:any){
-      return sendError(res, err.message, err.statusCode|| 500);
+    }catch(err:unknown){
+      const errMsg= err as { data: {message:string, statusCode?:number}};
+      return sendError(res, errMsg.data.message, errMsg.data.statusCode|| 500);
       }
   }
 
@@ -40,8 +42,9 @@ export class ReportController{
       {days: Number(req.query.days), assetType:req.query.type as string, deptId:Number(req.query.dept)}
     );
     sendSuccess(res, result, "fetch success:compliance report");
-  } catch (err:any) {
-    return sendError(res, err.message, err.statusCode|| 500);
+  } catch (err:unknown) {
+    const errMsg= err as { data: {message:string, statusCode?:number}};
+    return sendError(res, errMsg.data.message, errMsg.data.statusCode|| 500);
   }
   }
 }

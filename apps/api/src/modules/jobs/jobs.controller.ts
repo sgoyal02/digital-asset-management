@@ -14,8 +14,9 @@ export class JobsController{
       const limit=Number(req.query.limit)|| 10;
       const newJobs= await jobsService.getJobs(limit);
       sendSuccess(res, newJobs, 'jobs fetch success');
-    } catch(err:any){
-      return sendError(res, err.message, err.statusCode|| 500);
+    } catch(err:unknown){
+      const errMsg= err as {data:{message:string, statusCode?:number}};
+      return sendError(res, errMsg.data.message, errMsg.data.statusCode|| 500);
     }
   }
 }

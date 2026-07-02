@@ -123,9 +123,10 @@ const AssetDetail=() =>{
       setAsset((prev)=>({...prev, isLoad: false,
          data: res?.data || res
         }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.log("catchEr: ", err);
-      setAsset((prev)=>({...prev, isLoad: false, err: err.message|| 'failed fetch asset detail'}))
+      const errMsg= err as {data:{message?:string, statusCode?:number}};
+      setAsset((prev)=>({...prev, isLoad: false, err: errMsg.data.message|| 'failed fetch asset detail'}))
     }
   }
   
@@ -154,8 +155,9 @@ const AssetDetail=() =>{
       const updated = res?.data || res;
       // setAsset((prev: any) => ({ ...prev, data: updated }));
       onBack(); //main list--? or same ui- vNum check
-    } catch (err: any) {
-      setReview((prev)=>({...prev, err:err.message || "review action fail"}))
+    } catch (err: unknown) {
+      const errMsg= err as {data:{message:string, statusCode?:number}};
+      setReview((prev)=>({...prev, err:errMsg.data.message || "review action fail"}))
     } finally {
       setReview((prev)=>({...prev, process: false}))
     }

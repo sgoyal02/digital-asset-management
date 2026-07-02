@@ -81,10 +81,11 @@ export const thumbnailWorker=async() => {
       ch.ack(msg);
       await markAssetStatus(assetId, 'UPLOADED');
       await jobDone(logId);
-    } catch (err:any) {
+    } catch (err:unknown) {
       console.error("thumb worker fail: ", err);
+      const errMsg= err as {data:{message:string, statusCode?:number}};
       await markAssetStatus(assetId, 'FAILED');
-      await jobFailed(logId, err.message);
+      await jobFailed(logId, errMsg.data.message);
       ch.nack(msg, false, false);
     }
   });

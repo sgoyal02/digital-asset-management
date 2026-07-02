@@ -71,3 +71,10 @@ export const jobFailed= async(logId: number, err: string) => {
     data:{status: 'FAILED', completedAt: new Date(), duration, error:err}
   });
 };
+
+export class HttpError extends Error{
+  constructor(message: string,public statusCode: number){
+    super(message);
+    this.name = "HttpError";
+  }
+}

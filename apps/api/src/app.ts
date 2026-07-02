@@ -20,10 +20,10 @@ app.use((req, res, next) => {
 app.use('/api', globalRouter)
 
 //global err custom
-app.use((err:any, req:Request, res:Response, next:NextFunction):void=>{
-    console.error("global catch: ", err.stack, err.message);
-  const code = err.statusCode|| 500;
-    const msg = err.message||'Internal server error';
+app.use((err:unknown, req:Request, res:Response, next:NextFunction):void=>{
+  const errMsg = err as { data: {message?:string, statusCode?:number}};
+  const code = errMsg.data.statusCode|| 500;
+    const msg = errMsg.data.message||'Internal server error';
     sendError(res, msg, code);
 })
 

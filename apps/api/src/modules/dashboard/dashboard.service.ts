@@ -41,8 +41,8 @@ export class DashboardService{
         ...whereScope
       }
     });
-    const pending = processing.find((p:any) =>p.status === 'UNDER_REVIEW')?._count.id || 0;
-    const failed = processing.find((p:any) =>p.status === 'FAILED')?._count.id || 0;
+    const pending = processing.find((p) =>p.status === 'UNDER_REVIEW')?._count.id ?? 0;
+    const failed = processing.find((p) =>p.status === 'FAILED')?._count.id ?? 0;
     const total = pending + failed;
     const pendingPer = total? Math.round((pending/total)* 100): 0;
     const failedPer = total? Math.round((failed/total)* 100): 0;

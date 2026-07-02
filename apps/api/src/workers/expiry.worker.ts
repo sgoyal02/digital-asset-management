@@ -25,9 +25,10 @@ export const expiryWorker = () => {
     });
     console.log("exp worker done: ",expired.count,archived.count);
     await jobDone(logId);
-  }catch(err:any){
+  }catch(err:unknown){
     console.error('expiry worker fail: ', err);
-    await jobFailed(logId, err.message);
+    const errMsg= err as {data:{message:string, statusCode?:number}};
+    await jobFailed(logId, errMsg.data.message);
   }
   });
 };
