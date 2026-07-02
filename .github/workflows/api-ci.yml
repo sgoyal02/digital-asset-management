@@ -41,6 +41,10 @@ jobs:
 
       - name: Dependencies install
         run: pnpm install --frozen-lockfile
+      
+      - name: set db
+        run: |
+          echo "DATABASE_URL=postgresql://test:test@localhost:5432/testdb" >> $GITHUB_ENV
 
       - name: Prisma client generat
         run: pnpm --filter api run prisma:generate
