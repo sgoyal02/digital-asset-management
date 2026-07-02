@@ -1,19 +1,23 @@
 import { Route, Routes } from "react-router-dom";
 import Login from "../pages/Login";
 import { PrivateRoute } from "./PrivateRoute";
-import Dashboard from "../pages/Dashboard";
 import Redirect from "./Redirect";
+import { lazy, Suspense } from "react";
+import PageLoader from "../components/PageLoader";
 import DashboardLayout from "../components/layout/DashboardLayout";
-import AssetsOverview from "../pages/AssetsOverview";
-import AssetDetail from "../modules/assets/AssetDetail";
-import Collections from "../pages/Collections";
-import CollectionDetail from "../modules/collections/CollectionDetail";
-import Reports from "../pages/Reports";
-import BackgroundJobs from "../modules/jobs_admin";
+
+const Dashboard = lazy(() => import("../pages/Dashboard"));
+const AssetsOverview = lazy(() => import("../pages/AssetsOverview"));
+const Collections = lazy(() => import("../pages/Collections"));
+const Reports = lazy(() => import("../pages/Reports"));
+const BackgroundJobs = lazy(() => import("../modules/jobs_admin"));
+const AssetDetail = lazy(() => import("../modules/assets/AssetDetail"));
+const CollectionDetail = lazy(() => import("../modules/collections/CollectionDetail"));
 
 
 export default function AppRoutes () {
     return(
+        <Suspense fallback={<PageLoader />}>
             <Routes>
                 <Route path="/" element={<Redirect />} />
                 <Route path={'/login'} element={<Login/>}/>
@@ -30,5 +34,6 @@ export default function AppRoutes () {
                     </Route>
                 </Route>
             </Routes>
+            </Suspense>
     )
 }

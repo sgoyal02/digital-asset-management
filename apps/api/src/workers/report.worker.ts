@@ -77,7 +77,7 @@ const calCompliance= async(userId: number, role: string, filters:ReportFilters) 
     if(a.isArchived) result.archived++;
     else if(a.status === "REJECTED") result.rejected++;
     else if(a.expiryDate && a.expiryDate< currDay) result.expired++;
-    else if(a.expiryDate && a.expiryDate > currDay && a.expiryDate< new Date(currDay.getTime() + 30*24*60*60*1000)){
+    else if(a.expiryDate && a.expiryDate > currDay && a.expiryDate< new Date(currDay.getTime() + 10*24*60*60*1000)){
       result.expiring_soon++;
     }else{
       result.healthy++;
