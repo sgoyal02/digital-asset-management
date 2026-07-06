@@ -20,11 +20,10 @@ export class ReportService{
     const existData = await prisma.reportCal.findUnique({
       where:{type_role_days_assetType_deptId:{type, role:userRole, days, assetType, deptId}},
     });
-    console.log("servie existData: ", existData, isExp);
     if(existData && !isExp(existData.createdAt)) {
       return{data:existData.payload, fresh: true, createdAt:existData.createdAt};
     }
-    console.log("exi data calDtaa: ", existData);
+    
     await publishReport({type,userId, role, filters:updatedFil});
     if (existData) {
       return{data:existData.payload, fresh: false,createdAt:existData.createdAt};
@@ -32,7 +31,6 @@ export class ReportService{
     //cal if no cach
     const payload= await calReport(type, userId, role, updatedFil);
     
-    console.log("no data exist calDtaa: ", payload);
     await prisma.reportCal.create({
       data: { type, role: userRole, days, assetType, deptId, payload },
     });

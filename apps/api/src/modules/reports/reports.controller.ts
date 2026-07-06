@@ -2,6 +2,7 @@ import { Response } from "express";
 import { AuthReq } from "../../middleware/auth.middleware";
 import { ReportService } from "./reports.service";
 import { sendError, sendSuccess } from "../../response";
+import { ApiError } from "../../types/helper";
 
 const reportService= new ReportService();
 export class ReportController{
@@ -15,10 +16,11 @@ export class ReportController{
       );
       sendSuccess(res, result, 'fetch success:usage trend report');
     }catch(err:unknown){
-      const errMsg= err as { data: {message:string, statusCode?:number}};
-      return sendError(res, errMsg.data.message, errMsg.data.statusCode|| 500);
-      }
+      const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
+  }
   
   async getDuplicates(req:AuthReq, res:Response){
     try{
@@ -29,8 +31,9 @@ export class ReportController{
       );
       sendSuccess(res, result, 'fetch success:duplicates report');
     }catch(err:unknown){
-      const errMsg= err as { data: {message:string, statusCode?:number}};
-      return sendError(res, errMsg.data.message, errMsg.data.statusCode|| 500);
+     const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
       }
   }
 
@@ -43,8 +46,9 @@ export class ReportController{
     );
     sendSuccess(res, result, "fetch success:compliance report");
   } catch (err:unknown) {
-    const errMsg= err as { data: {message:string, statusCode?:number}};
-    return sendError(res, errMsg.data.message, errMsg.data.statusCode|| 500);
+    const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
   }
   }
 }

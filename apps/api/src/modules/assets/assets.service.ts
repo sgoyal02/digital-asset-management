@@ -17,7 +17,6 @@ export class AssetService {
     const isAdmin = dbUser.role === 'ADMIN';
     const expDate = new Date();
     expDate.setDate(expDate.getDate()+20);
-    console.log("user: ", dbUser);
     const fileHash   = crypto.createHash('sha256').update(file.buffer).digest('hex');
     const userName = dbUser.name?.replace(/[^a-zA-Z0-9-_]/g, '')||'noName';
     const originalName = file.originalname?.replace(/[^a-zA-Z0-9._-]/g, '')|| 'fileUnknown';
@@ -109,7 +108,6 @@ export class AssetService {
     });
 
     //queue call- file data, owner id
-    console.log("ass: ", res);
 
     publishAssetUpload({
       assetId:res?.id,

@@ -9,6 +9,5 @@ export const publishAssetUpload= (payload:AssetUploadPayload) => {
 
 export const publishReport= (payload:ReportPayload) => {
   const ch= getChannel();
-  console.log("payl: ", payload);
   ch.sendToQueue(QUEUES.REPORT,Buffer.from(JSON.stringify(payload)),{persistent: true});
 };

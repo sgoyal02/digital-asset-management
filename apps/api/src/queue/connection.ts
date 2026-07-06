@@ -9,7 +9,6 @@ export const connectRabbitMq=async(check=3):Promise<void> => {
     try {
       connection=await amqp.connect(process.env.RABBITMQ_URL!); //if idle reenable do-??
       channel=await connection.createChannel();
-      console.log('queu rabbit connected');
 
     await channel.assertExchange(EXCHANGES.ASSET_UPLOADED,'fanout', {durable:true}); //msg all q--durable-oky wid server restart
     for (const q of Object.values(QUEUES)) {
@@ -21,7 +20,6 @@ export const connectRabbitMq=async(check=3):Promise<void> => {
     await channel.bindQueue(QUEUES.EXPIRY,EXCHANGES.ASSET_UPLOADED, '');
     return;
     } catch (err) {
-      console.log(`queu conncet try${i+1} fail, retry in 3sec`);
       await new Promise(r =>setTimeout(r, 3000));
     }
   }

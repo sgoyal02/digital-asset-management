@@ -39,7 +39,6 @@ export const whereExpReport= async(role:string, uId:number, filters?:ReportFilte
     const since= new Date();
     since.setHours(0,0,0,0);
     since.setDate(since.getDate()-filters.days + 1);
-    console.log("sice: ", since)
     where.createdAt={gte: since};
   }
   return where;
@@ -76,5 +75,13 @@ export class HttpError extends Error{
   constructor(message: string,public statusCode: number){
     super(message);
     this.name = "HttpError";
+  }
+}
+
+export class ApiError extends Error {
+  statusCode: number;
+  constructor(message: string, statusCode = 500) {
+    super(message);
+    this.statusCode = statusCode;
   }
 }

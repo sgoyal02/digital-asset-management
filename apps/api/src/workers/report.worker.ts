@@ -2,7 +2,7 @@ import { prisma } from '../lib/prisma';
 import { getChannel } from '../queue/connection';
 import { QUEUES } from '../queue/queues';
 import { ReportFilters, ReportPayload } from '../types';
-import { jobDone, jobFailed, jobStart, whereExpReport } from '../types/helper';
+import { ApiError, jobDone, jobFailed, jobStart, whereExpReport } from '../types/helper';
 
 const roleKey=(role:string, uId:number)=> role=== 'ADMIN'? 'ADMIN': `${role}_${uId}`;
 
@@ -12,8 +12,7 @@ const calUsageTrends=async(userId:number, role:string, filters:ReportFilters)=>{
     where:{...where},
     select:{createdAt:true}
   });
-  console.log("Ass usage calc: ", assets);
- 
+  
   const byDay:Record<string,number>={};   //grpBy
   for(const a of assets) {
    const date= a.createdAt.toISOString().split('T')[0];
@@ -105,12 +104,10 @@ export const reportWorker= async()=> {
   ch.consume(QUEUES.REPORT, async(msg:any)=>{
     if(!msg) return;
     const{type,userId,role,filters}:ReportPayload= JSON.parse(msg.content.toString());
-    console.log("rep worker in: ", filters);
     const logId= await jobStart('REPORT');
     try{
       let payload: any;
       payload= await calReport(type, userId, role, filters);
-      console.log("payload worker rep:", payload);
       await prisma.reportCal.upsert({
         where:{type_role_days_assetType_deptId:{type, role:roleKey(role,userId), days:filters.days!, assetType:filters.assetType!, deptId:filters.deptId!}},
         create:{type,role:roleKey(role,userId), days:filters.days, 
@@ -120,8 +117,8 @@ export const reportWorker= async()=> {
       ch.ack(msg);
       await jobDone(logId);
     }catch(err:any) {
-      console.error("report worker fail:", err);
-      await jobFailed(logId, err.message);
+      const e= err as ApiError;
+      await jobFailed(logId, e.message);
       ch.nack(msg,false,false);
     }
   });

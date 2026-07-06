@@ -9,7 +9,7 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs';
 import Ffmpeg from '../lib/ffmpeg';
-import { jobDone, jobFailed, jobStart, markAssetStatus } from '../types/helper';
+import { ApiError, jobDone, jobFailed, jobStart, markAssetStatus } from '../types/helper';
 
 const BUCKET = 'assets';
 const THUMB_BUCKET = 'thumbnails';
@@ -42,7 +42,6 @@ export const thumbnailWorker=async() => {
   ch.prefetch(1);
 
   ch.consume(QUEUES.THUMBNAIL, async (msg) => {
-    console.log("thum msg: ", msg);
     if (!msg) return;
     const {assetId,fileKey,mimeType}:AssetUploadPayload=JSON.parse(msg.content.toString());
     const logId= await jobStart('THUMBNAIL', assetId);
@@ -83,12 +82,11 @@ export const thumbnailWorker=async() => {
       await jobDone(logId);
     } catch (err:unknown) {
       console.error("thumb worker fail: ", err);
-      const errMsg= err as {data:{message:string, statusCode?:number}};
+      const e= err as ApiError;
       await markAssetStatus(assetId, 'FAILED');
-      await jobFailed(logId, errMsg.data.message);
+      await jobFailed(logId, e.message);
       ch.nack(msg, false, false);
     }
   });
 
-  // console.log('thumb worker listen: ',QUEUES.THUMBNAIL);
 };

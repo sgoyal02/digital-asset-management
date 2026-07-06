@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { DashboardService } from "./dashboard.service";
 import { sendError, sendSuccess } from "../../response";
 import { AuthReq } from "../../middleware/auth.middleware";
+import { ApiError } from "../../types/helper";
 
 const dashboardService= new DashboardService();
 export class DashboardController{
@@ -12,9 +13,9 @@ export class DashboardController{
             const stats= await dashboardService.getStats(userId, role);
             sendSuccess(res, stats, "Dashboard stats fetch success");
         }catch(err:unknown){
-            const errMsg= err as {data:{message:string, statusCode?:number}};
-            const code= errMsg.data.statusCode || 500;
-            return sendError(res, errMsg.data.message, code);
+           const e= err as ApiError;
+            const code= e.statusCode || 500;
+            return sendError(res, e.message, code);
         }
     } 
 }

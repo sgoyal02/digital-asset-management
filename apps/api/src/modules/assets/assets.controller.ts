@@ -3,7 +3,7 @@ import { AuthReq } from "../../middleware/auth.middleware";
 import { sendError, sendSuccess } from "../../response";
 import { AssetService } from "./assets.service";
 import { prisma } from "../../lib/prisma";
-import { markAssetStatus } from "../../types/helper";
+import { ApiError, markAssetStatus } from "../../types/helper";
 
 const assetService = new AssetService();
 export class AssetController{
@@ -15,9 +15,9 @@ async getAssets(req:AuthReq, res:Response){
       const assets = await assetService.getAssets(userId, role, search);
       sendSuccess(res, assets, "assets listing fetch success");
     } catch (err:unknown) {
-      const errMsg = err as { data: {message:string, statusCode?:number}};
-        const code= errMsg.data.statusCode || 500;
-        return sendError(res, errMsg.data.message, code);
+      const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
 }
 
@@ -32,9 +32,9 @@ async getAssetById(req:AuthReq, res:Response) {
     const asset = await assetService.getAssetById(assetId, userId, role);
     sendSuccess(res, asset, 'asset detail fetch success');
   } catch (err: unknown) {
-    const errMsg = err as { data: {message:string, statusCode?:number}};
-    const code = errMsg.data.statusCode || 500;
-    return sendError(res, errMsg.data.message, code);
+    const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
   }
 }
 
@@ -47,10 +47,9 @@ async uploadAsset(req: AuthReq, res:Response) {
     const msg= role==='ADMIN' ? 'asset uploaded and approved' : 'asset upload success'
     sendSuccess(res, newAsset, msg, 201);
   } catch (err: unknown) {
-    console.log("err catch: ", err);
-    const errMsg = err as { data: {message:string, statusCode?:number}};
-    const code= errMsg.data.statusCode || 500;
-    return sendError(res, errMsg.data.message, code);
+   const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
   }
 }
 
@@ -67,10 +66,9 @@ async reqReview(req:AuthReq, res:Response) {
     await markAssetStatus(Number(assetId), role==='ADMIN' ? "APPROVED": 'UNDER_REVIEW');
     sendSuccess(res, null, "asset sent for review", 201);
   } catch (err: unknown) {
-    console.log("err catch: ", err);
-    const errMsg = err as { data: {message:string, statusCode?:number}};
-    const code= errMsg.data.statusCode || 500;
-    return sendError(res, errMsg.data.message, code);
+    const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
   }
 }
 
@@ -84,12 +82,11 @@ async reviewAsset(req:AuthReq, res: Response) {
         return sendError(res, 'action not valid', 400);
       }
       const updated = await assetService.reviewAsset(assetId,reviewerId, role, action);
-      console.log("updated: ", updated);
       sendSuccess(res,updated,`asset ${action.toLowerCase()} success`);
     } catch(err:unknown) {
-      const errMsg = err as { data: {message:string, statusCode?:number}};
-      const code= errMsg.data.statusCode || 500;
-      return sendError(res, errMsg.data.message, code);
+     const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
   }
 }

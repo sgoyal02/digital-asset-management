@@ -1,13 +1,14 @@
 
 import dotenv from 'dotenv';
 dotenv.config();
+
 import app from "./app";
 import { connectRabbitMq } from './queue/connection';
 import { thumbnailWorker } from './workers/thumbnail.worker';
 import { metadataDataWorker } from './workers/metadata.worker';
 import { duplicateWorker } from './workers/duplicate.worker';
 import { expiryWorker } from './workers/expiry.worker';
-import { minioClient, setPublicBuckets } from './lib/minio';
+import {setPublicBuckets } from './lib/minio';
 import { reportWorker } from './workers/report.worker';
 
 const PORT = process.env.PORT || 4000;
@@ -25,7 +26,6 @@ const bootstrap=async()=>{
     app.listen(PORT, () => {
       console.log("server run on PORT: ", PORT);
     });
-    const policy = await minioClient.getBucketPolicy('thumbnails');
   } catch (err){
     console.error("server fail run: ", err);
     process.exit(1);

@@ -2,14 +2,13 @@ import { prisma } from "../lib/prisma";
 import { getChannel } from "../queue/connection";
 import { QUEUES } from "../queue/queues";
 import { AssetUploadPayload } from "../types";
-import { jobDone, jobFailed, jobStart } from "../types/helper";
+import { ApiError, jobDone, jobFailed, jobStart } from "../types/helper";
 
 export const duplicateWorker = async () => {
   const ch = getChannel();
   ch.prefetch(1);
 
   ch.consume(QUEUES.DUPLICATE, async (msg) => {
-    console.log("dupe msg start: ", msg);
     if (!msg) return;
     const {assetId}:AssetUploadPayload= JSON.parse(msg.content.toString());
     const logId= await jobStart('DUPLICATE', assetId);
@@ -31,9 +30,8 @@ export const duplicateWorker = async () => {
       ch.ack(msg);
       await jobDone(logId);
     } catch (err:unknown) {
-      console.error("dupe worker fai err: ", err);
-      const errMsg= err as {data:{message:string, statusCode?:number}};
-      await jobFailed(logId, errMsg.data.message);
+      const e= err as ApiError;
+      await jobFailed(logId, e.message);
       ch.nack(msg, false, false);
     }
   });

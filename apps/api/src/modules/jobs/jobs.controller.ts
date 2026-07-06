@@ -2,6 +2,7 @@ import { Response } from "express";
 import { AuthReq } from "../../middleware/auth.middleware";
 import { sendError, sendSuccess } from "../../response";
 import { JobsService } from "./jobs.service";
+import { ApiError } from "../../types/helper";
 
 const jobsService = new JobsService();
 
@@ -15,8 +16,9 @@ export class JobsController{
       const newJobs= await jobsService.getJobs(limit);
       sendSuccess(res, newJobs, 'jobs fetch success');
     } catch(err:unknown){
-      const errMsg= err as {data:{message:string, statusCode?:number}};
-      return sendError(res, errMsg.data.message, errMsg.data.statusCode|| 500);
+      const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
   }
 }

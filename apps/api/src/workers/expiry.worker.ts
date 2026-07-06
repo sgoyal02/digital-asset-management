@@ -1,10 +1,9 @@
 import cron from 'node-cron';
 import { prisma } from '../lib/prisma';
-import { jobDone, jobFailed, jobStart } from '../types/helper';
+import { ApiError, jobDone, jobFailed, jobStart } from '../types/helper';
 
 export const expiryWorker = () => {
   cron.schedule('0 0 * * *', async()=>{
-  console.log('exp worker run:');
   const logId=await jobStart('EXPIRY');
   try{
   const now = new Date();
@@ -23,12 +22,10 @@ export const expiryWorker = () => {
       },
       data:{status:'ARCHIVED',isArchived: true}
     });
-    console.log("exp worker done: ",expired.count,archived.count);
     await jobDone(logId);
   }catch(err:unknown){
-    console.error('expiry worker fail: ', err);
-    const errMsg= err as {data:{message:string, statusCode?:number}};
-    await jobFailed(logId, errMsg.data.message);
+    const e= err as ApiError;
+    await jobFailed(logId, e.message);
   }
   });
 };

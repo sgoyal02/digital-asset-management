@@ -100,9 +100,7 @@ export class CollectionService{
       throw new HttpError("collection access denied", 403);
     }
     const data=aIds.map((aId)=>({assetId:aId, collectionId:cId}));
-    console.log('inserting:', data);
     const result = await prisma.assetCollection.createMany({data, skipDuplicates: true,}); //skip-file in collectio already-check??
-    console.log('res add:', result);
     return {count:result.count};
   }
 

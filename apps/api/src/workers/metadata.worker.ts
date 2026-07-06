@@ -7,7 +7,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import Ffmpeg from '../lib/ffmpeg';
-import { jobDone, jobFailed, jobStart, markAssetStatus } from '../types/helper';
+import { ApiError, jobDone, jobFailed, jobStart, markAssetStatus } from '../types/helper';
 
 const BUCKET = 'assets';
 
@@ -50,15 +50,14 @@ export const metadataDataWorker = async () => {
           where:{id:assetId},
           data: {duration:duration||null}
         });
-    console.log("worker meta tym: ",assetId,duration);
     ch.ack(msg);
     await markAssetStatus(assetId, 'UPLOADED');
     await jobDone(logId);
     } catch (err:unknown) {
       console.error('worker meta fail:',err);
-      const errMsg= err as {data:{message:string, statusCode?:number}};
+      const e= err as ApiError;
       await markAssetStatus(assetId, 'FAILED');
-      await jobFailed(logId, errMsg.data.message);
+      await jobFailed(logId, e.message);
       ch.nack(msg, false, false);
     }finally{
       if (tmpPath && fs.existsSync(tmpPath)) {

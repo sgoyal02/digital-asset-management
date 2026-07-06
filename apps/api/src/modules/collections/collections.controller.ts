@@ -2,6 +2,7 @@ import { Response } from "express";
 import { AuthReq } from "../../middleware/auth.middleware";
 import { CollectionService } from "./collections.service";
 import { sendError, sendSuccess } from "../../response";
+import { ApiError } from "../../types/helper";
 
 const collectionService= new CollectionService();
 export class CollectionController{
@@ -13,14 +14,13 @@ export class CollectionController{
       const collections= await collectionService.getAllCollections(userId,role, excludeId);
       sendSuccess(res, collections, "Collections fetched successfully");
     } catch (err: unknown) {
-      const errMsg = err as { data: {message:string, statusCode?:number}};
-      const code= errMsg.data.statusCode || 500;
-      return sendError(res,errMsg.data.message, code);
+      const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
   }
  
   async createCollection(req:AuthReq, res:Response) {
-        console.log("req post: ", req.body)
     try {
       const userId= req.user!.id;
       const role= req.user!.role;
@@ -31,9 +31,9 @@ export class CollectionController{
       const data = await collectionService.createCollection(userId,role,name,desc,isShared);
       sendSuccess(res,data,"collection created success", 201);
     } catch (err: unknown) {
-      const errMsg = err as { data: {message:string, statusCode?:number}};
-      const code = errMsg.data.statusCode || 500;
-      return sendError(res, errMsg.data.message, code);
+      const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
   }
 
@@ -46,12 +46,11 @@ export class CollectionController{
         return sendError(res, "invalid collection id", 400);
     }
     const data = await collectionService.getCollectionDetail(cId,userId,role);
-    console.log("data detail collect: ", data);
     sendSuccess(res, data, "collection detail fetch success");
     } catch(err:unknown) {
-      const errMsg = err as { data: {message:string, statusCode?:number}};
-    const code= errMsg.data.statusCode || 500;
-    return sendError(res, errMsg.data.message, code);
+     const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
   }
 
@@ -66,9 +65,9 @@ export class CollectionController{
     const result = await collectionService.delCollectoin(cId,userId, role);
     sendSuccess(res, result, "collection del success");
     } catch(err:unknown) {
-      const errMsg = err as { data: {message:string, statusCode?:number}};
-      const code= errMsg.data.statusCode|| 500;
-      return sendError(res, errMsg.data.message, code);
+     const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
   }
 
@@ -78,16 +77,15 @@ export class CollectionController{
       const role= req.user!.role;
       const cId= Number(req.params.id);
       const {assetIds} = req.body;
-      console.log('aIds:', assetIds, typeof assetIds[0]);
       if (!Array.isArray(assetIds)||!assetIds.length) {
         return sendError(res,"asset ids not avail", 400);
       }
       const result = await collectionService.addAssets(cId,assetIds, userId, role);
       sendSuccess(res,result, "asset add in collection success");
     } catch (err:unknown) {
-      const errMsg = err as { data: {message:string, statusCode?:number}};
-      const code= errMsg.data.statusCode || 500;
-      return sendError(res,errMsg.data.message, code);
+      const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
   }
  
@@ -101,9 +99,9 @@ export class CollectionController{
       const result = await collectionService.delAsset(cId,aId,userId, role);
       sendSuccess(res,result, "asset rmeove success");
     } catch (err:unknown) {
-      const errMsg = err as { data: {message:string, statusCode?:number}};
-      const code= errMsg.data.statusCode|| 500;
-      return sendError(res,errMsg.data.message, code);
+      const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
   }
  
@@ -120,9 +118,9 @@ export class CollectionController{
       const result= await collectionService.moveAsset(cId, aId, Number(destId), userId, role);
       sendSuccess(res,result, "asset move success");
     } catch(err:unknown) {
-      const errMsg = err as { data: {message:string, statusCode?:number}};
-      const code= errMsg.data.statusCode|| 500;
-      return sendError(res,errMsg.data.message,code);
+      const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
   }
  
