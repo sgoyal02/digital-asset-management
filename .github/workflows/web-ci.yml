@@ -40,3 +40,6 @@ jobs:
 
       - name: Web build
         run: pnpm --filter web build
+      
+      - name: web test run
+        run: pnpm --filter web test

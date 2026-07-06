@@ -6,11 +6,17 @@ services:
     image: postgres:18
     container_name: postgres_db
     env_file:
-      - ./postgres.env.example
+      - ./postgres.env
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   minio:
     image: minio/minio:latest
@@ -19,10 +25,16 @@ services:
       - "9000:9000"
       - "9001:9001"
     env_file:
-      - ./minio.env.example
+      - ./minio.env
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
@@ -55,9 +67,9 @@ services:
       rabbitmq:
         condition: service_healthy
       postgres:
-        condition: service_started
+        condition: service_healthy
       minio:
-        condition: service_started
+        condition: service_healthy
     volumes:
       # - ..:/app
       # - /app/node_modules
@@ -66,6 +78,12 @@ services:
     command: sh -c "cd apps/api && pnpm install && pnpm exec prisma migrate deploy && pnpm dev"
     # command: sh -c "cd apps/api && pnpm exec prisma migrate deploy && pnpm dev"
     # command: pnpm --filter api dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   web:
     build:
@@ -86,6 +104,11 @@ services:
       # - /app/node_modules
       - ../apps/web:/app/apps/web
       - web_node_modules:/app/apps/web/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

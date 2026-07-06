@@ -51,3 +51,6 @@ jobs:
 
       - name: Api build
         run: pnpm --filter api run build
+
+      - name: Api test run
+        run: pnpm --filter api test
