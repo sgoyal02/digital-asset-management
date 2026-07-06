@@ -6,7 +6,7 @@ services:
     image: postgres:18
     container_name: postgres_db
     env_file:
-      - ./postgres.env
+      - ./postgres.env.example
     ports:
       - "5432:5432"
     volumes:
@@ -19,7 +19,7 @@ services:
       - "9000:9000"
       - "9001:9001"
     env_file:
-      - ./minio.env
+      - ./minio.env.example
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data

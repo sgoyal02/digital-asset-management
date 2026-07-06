@@ -10,4 +10,7 @@ build/
 .env.local
 .env.*.local
 
+infra/**/*.env
+infra/**/.env
+
 *.tsbuildinfo
