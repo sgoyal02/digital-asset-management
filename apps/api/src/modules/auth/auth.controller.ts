@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { sendError, sendSuccess } from '../../response';
+import { ApiError } from '../../types/helper';
 
 const authService = new AuthService();
 export class AuthController{
   async login(req: Request,res: Response) {
-    // console.log("login body: ", req.body);
     try {
       const {email,password} = req.body;
       if (!email || !password) {
@@ -14,9 +14,21 @@ export class AuthController{
       const result = await authService.login(email, password);
       return sendSuccess(res, result,'Login success')
     } catch (err: unknown) {
-      const errMsg = err as { data: {message:string, statusCode?:number}};
-      const code= errMsg.data.statusCode || 500;
-      return sendError(res, errMsg.data.message, code);
+      const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
+    }
+  }
+
+  async refreshToken(req:Request, res:Response) {
+    try {
+      const {refreshToken} = req.body;
+      const result = await authService.refresh(refreshToken);
+      return sendSuccess(res, result,'Token refresh success')
+    } catch (err:unknown) {
+      const e= err as ApiError;
+      const code= e.statusCode || 500;
+      return sendError(res, e.message, code);
     }
   }
 }

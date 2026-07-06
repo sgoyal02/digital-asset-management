@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useApiService } from "../services/useApiService";
-import { useAuth } from "../hooks/AuthContext";
 import {useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { loginSchema } from "../validations/web.validation";
+import {z} from "zod";
 
 export default function Login() {
   const [userData, setUserData] = useState({email: "", password: "", showPswd: false});
+  const [formErr, setFormErr] = useState({email:"", pswd:""})
   const [pageState, setPageState] = useState({isLoad: false, err:""});
   const apiService = useApiService();
   const {setAuthData} = useAuth();
@@ -20,6 +23,13 @@ export default function Login() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    const isValid= loginSchema.safeParse({email: userData.email, password:userData.password});
+    if(!isValid.success){
+      const errors = z.treeifyError(isValid.error);
+      setFormErr({email: errors.properties?.email?.errors?.[0] ?? "",
+        pswd: errors.properties?.password?.errors?.[0] ?? ""});
+      return;
+    }
     setPageState((prev)=>({...prev,isLoad: true, err: ""}));
     try{
       const res= await apiService.makeReq({
@@ -27,20 +37,16 @@ export default function Login() {
         url: '/auth/login',
         data: { email: userData.email, password: userData.password}
       });
-      console.log("login res: ", res);
       if(res && res?.success){
          setPageState((prev)=>({...prev,isLoad: false}));
-        // setAuthData(res.data.token, res.data.user, true, ()=>{
-        //     navigate('/dashboard', {replace:true});
-        // });
-        setAuthData(res.data.token, res.data.user, true);
+        setAuthData(res.data.token, res.data.refreshToken, res.data.user, true);
         navigate('/dashboard', {replace:true});
       } else {
         setPageState((prev)=>({...prev,isLoad: false, err: res.message ||'fail api'}));
       }
     } catch(err:unknown){
       const errMsg = err as { data: {message:string, code?:number}};
-       setPageState((prev)=>({...prev,isLoad: false, err:errMsg.data.message || "Login failed. Please try again."}));
+       setPageState((prev)=>({...prev,isLoad: false, err:errMsg?.data?.message || "Login failed. Please try again."}));
       return;
     }
   };
@@ -88,7 +94,7 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} noValidate className="space-y-5">
           <div>
             <label className="block text-xs font-medium text-gray mb-2 ">
               Email
@@ -96,12 +102,20 @@ export default function Login() {
               <input
                 type="email"
                 value={userData.email}
-                onChange={(e) => setUserData({...userData, email: e.target.value})}
+                onChange={(e) =>{
+                   setUserData({...userData, email: e.target.value});
+                   setFormErr((prev)=>({...prev, email:""}))
+                }}
                 required
                 placeholder="you@company.com"
                 className="w-full px-3 py-2 rounded-xl text-sm bg-card border border-border text-main-white placeholder:text-muted
                           focus:outline-none focus:border-border-focus focus:bg-hover transition-all duration-200"
               />
+            {formErr.email && (
+              <p className="mt-1 text-xs text-error">
+                {formErr.email}
+              </p>
+            )}
           </div>
 
           <div>
@@ -112,7 +126,10 @@ export default function Login() {
               <input
                 type={userData.showPswd ? "text" : "password"}
                 value={userData.password}
-                onChange={(e) => setUserData({...userData, password: e.target.value})}
+                onChange={(e) => {
+                  setUserData({...userData, password: e.target.value});
+                   setFormErr((prev)=>({...prev, pswd:""}))
+                }}
                 required
                 placeholder="xxxxxxx"
                 className="w-full px-3 py-2 pr-10 rounded-xl text-sm  bg-card border border-border 
@@ -140,6 +157,11 @@ export default function Login() {
                 )}
               </button>
             </div>
+            {formErr.pswd && (
+              <p className="mt-1 text-xs text-error">
+                {formErr.pswd}
+              </p>
+            )}
           </div>
 
           <button

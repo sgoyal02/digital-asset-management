@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { AuthProvider, useAuth } from "./AuthContext";
+import { AuthProvider } from "../providers/auth.provider";
+import { useAuth } from "../hooks/useAuth";
 
 function AuthTestComp() {
   const auth= useAuth();
@@ -11,7 +12,7 @@ function AuthTestComp() {
       </div>
       <button onClick={()=> auth.logout()}>logout</button>
       <button onClick={() => auth.setAuthData(
-            "tokenxy", {id: 1, name: "test"} as any, true)
+            "tokenxy", "reftoken12", {id: 1, name: "test"} as any, true)
         }>
         login
       </button>
