@@ -28,19 +28,28 @@ const AssetsList = () => {
       setAssets((prev)=>({...prev, isLoad: false,
          data: response?.data || response
         }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.log("catchEr: ", err);
+      const errMsg = err as { data: {message:string}};
       // if (err.code === "ERR_CANCELED" ||err.name === "CanceledError") {
       //   return;
       // }
       console.log("afterabort: ", err);
-       setAssets((prev)=>({...prev, isLoad: false, error: err.message || 'failed fetch assets'}))
+       setAssets((prev)=>({...prev, isLoad: false, error: errMsg.data.message || 'failed fetch assets'}))
     }
   }, [makeReq]);
 
     useEffect(() => {
     const controller = new AbortController();
-    fetchAssets('',controller.signal);
+    const loadData = async () => {
+      try {
+        await fetchAssets('', controller.signal);
+      } catch (err:unknown) {
+        console.error(err);
+      }
+    };
+
+    loadData();
     return(()=>{
       controller.abort();
     })
@@ -81,7 +90,7 @@ const AssetsList = () => {
       headers:{"Content-Type": "multipart/form-data"},
     });
     console.log("res: ", response);
-    }catch(err:any){
+    }catch(err:unknown){
       console.log("err: ", err);
     } finally{
       fetchAssets();
@@ -116,9 +125,10 @@ const AssetsList = () => {
       setSelectedIds((prev)=>({...prev, aIds:new Set(), err:null}));
       fetchAssets();
     }
-    }catch(err:any){
+    }catch(err:unknown){
+      const errMsg = err as { data: {message:string, statusCode?:number}};
       console.log("err: ", err);
-      setSelectedIds((prev)=>({...prev, err: err.message|| 'fail to add to col'}));
+      setSelectedIds((prev)=>({...prev, err: errMsg.data.message|| 'fail to add to col'}));
     } finally{
       setSelectedIds((prev)=>({...prev, isSubmit: false, isAdd: false, cId:null}));
     }

@@ -1,19 +1,9 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
 import type { ApiReqConfig } from "../utils/types";
 import axiosInstance from "./axiosInstance";
 
 export const useApiService = () => {
-    // const abortController = useRef<AbortController | null>(null);
-    // const cancelReq = useCallback(() => {
-    //     if (abortController.current) {
-    //         abortController.current.abort();
-    //         abortController.current = null;
-    //     }
-    // }, []);
-
     const makeReq = useCallback(async(config: ApiReqConfig) => {
-        // cancelReq();  //to cancel prev req pending
-        // abortController.current = new AbortController();
         try{
             const res= await axiosInstance({
                 method: config.method,
@@ -36,10 +26,6 @@ export const useApiService = () => {
         }
 
     }, []);
-
-    // useEffect(() => {
-    //     return () =>cancelReq();
-    // }, [cancelReq]);
 
     return {makeReq};
 }

@@ -25,15 +25,24 @@ const CollectionsList=() =>{
         signal
       });
       setCollections((prev)=>({...prev, isLoad: false,data: response?.data || response}));
-    } catch (err:any) {
+    } catch (err:unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
       console.error(err);
-      setCollections((prev)=>({...prev, isLoad: false, err: err.message || 'failed fetch collection'}))
+      setCollections((prev)=>({...prev, isLoad: false, err: errMsg.data.message || 'failed fetch collection'}))
     }
   }, [makeReq]);
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchCollections(controller.signal);
+    const fetchData=async()=>{
+      try{
+        await fetchCollections(controller.signal);
+      }catch(err:unknown){
+        console.error(err);
+      }
+    }
+
+    fetchData();
     return(()=>{
       controller.abort();
     })
@@ -55,8 +64,9 @@ const CollectionsList=() =>{
         onClose();
         fetchCollections();
       }
-    } catch (err: any) {
-      setState((prev)=>({...prev, isSubmit: false, err: err.message || 'fail to create'}))
+    } catch (err: unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      setState((prev)=>({...prev, isSubmit: false, err: errMsg.data.message || 'fail to create'}))
     }
   };
 
@@ -76,7 +86,7 @@ const CollectionsList=() =>{
       });
       console.log("res del collction: ", res);
       if(res.success) fetchCollections();
-    }catch(err:any){
+    }catch(err:unknown){
       console.error(err);
     }
   }

@@ -57,20 +57,6 @@ export class CollectionService{
     if(!cData.isShared&& cData.ownerId !== userId && role !== "ADMIN") {
       throw new HttpError("collection view-access denied", 403); //for admin/own only
     }
-
-    //view checksfor asset
-    //user not able to see admin added files-so del--? 
-    // let assetExp: any = {};
-    // if(role === "ADMIN"){assetExp = {};} 
-    // else if(role === "USER") {
-    //   assetExp={ownerId: userId};
-    // }else{
-    //   const team = await prisma.user.findMany({
-    //     where:{managerId:userId },select:{id: true },
-    //   });
-    //   const teamIds = team.map((u) => u.id);
-    //   assetExp = {ownerId:{in:[userId, ...teamIds]}};
-    // }
  
     const rows= await prisma.assetCollection.findMany({
       where:{collectionId:cId,

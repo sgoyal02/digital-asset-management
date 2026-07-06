@@ -24,8 +24,9 @@ const CollectionDetail=() =>{
       });
       console.log("ui res detail: ", res);
       setCollection((prev)=>({...prev, isLoad: false, cData: res.data?.cData, assets: res.data?.assetsData}));
-    } catch(err:any) {
-      setCollection((prev)=>({...prev, isLoad: false, err:err.message}));
+    } catch(err:unknown) {
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      setCollection((prev)=>({...prev, isLoad: false, err:errMsg.data.message}));
     }
   };
 
@@ -65,7 +66,7 @@ const CollectionDetail=() =>{
       })
       console.log("Res aId del: ", res);
       if(res.success) getDetail();
-    }catch(err:any){
+    }catch(err:unknown){
       console.error(err);
     }finally{
       setCollection((prev)=>({...prev, itemLoad: false}));
@@ -85,7 +86,7 @@ const CollectionDetail=() =>{
       console.log("res asset action: ", res);
       setModal((prev)=>({...prev, state:null}));
       if(modal.state?.type === "move") getDetail();
-    }catch(err:any){
+    }catch(err:unknown){
       console.error(err);
     }finally{
       setModal((prev)=>({...prev, isSubmit: false}));

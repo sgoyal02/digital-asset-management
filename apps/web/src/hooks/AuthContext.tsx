@@ -21,7 +21,7 @@ export const AuthProvider = ({children}:{children:React.ReactNode}) =>{
             try{
                 setToken(fetchToken);
                 setUser(JSON.parse(fetchUser));
-            } catch (err) {
+            } catch (err:unknown) {
                 console.error("parse err: ", err);
                 clearStorage();
             }

@@ -1,11 +1,11 @@
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BackJobs, formatFulltDate } from "../../utils/types";
 import { useApiService } from "../../services/useApiService";
 import { JOB_STATUS_STYLE, JOB_TYPE_LABEL } from "../../utils/helpers";
 
 
 const BackgroundJobs = () => {
-  const [jobs, setJobs] = useState<{ isLoad: Boolean, data: BackJobs[] | null, errTxt: string | null, lastRun: Date | null }>
+  const [jobs, setJobs] = useState<{ isLoad: boolean, data: BackJobs[] | null, errTxt: string | null, lastRun: Date | null }>
     ({ isLoad: false, data: null, errTxt: null, lastRun: null });
   const { makeReq } = useApiService();
   const POLL_IDLE = 10000;
@@ -34,11 +34,12 @@ const BackgroundJobs = () => {
       setJobs((prev) => ({
         ...prev, data: res.data?.data || null, lastRun: new Date()
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!mountRef.current)
         return;
       console.error("job err:", err);
-      setJobs((prev) => ({ ...prev, errTxt: err.message || 'failed to fetch jobs' }));
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      setJobs((prev) => ({ ...prev, errTxt: errMsg.data.message || 'failed to fetch jobs' }));
     } finally {
       setJobs((prev) => ({ ...prev, isLoad: false }));
     }
@@ -50,7 +51,16 @@ const BackgroundJobs = () => {
   }, [jobs.data]);
 
   useEffect(() => {
-    fetchBackJobs();
+    const fetchData=async()=>{
+      try{
+        await fetchBackJobs();
+      }catch(err:unknown){
+        console.error(err);
+        const errMsg = err as { data: {message:string, statusCode?:number}};
+        setJobs((prev) => ({ ...prev, errTxt: errMsg.data.message || 'failed to fetch back jobs.' }));
+      }
+    }
+    fetchData();
   }, [fetchBackJobs]);
 
   useEffect(() => {
@@ -119,12 +129,12 @@ const BackgroundJobs = () => {
             <tbody className="divide-y divide-border">
               {jobs.isLoad ? (
                 <tr><td colSpan={7} className="p-3 text-left text-gray">Loading jobs...</td></tr>
-              ) : !!jobs.errTxt ? (
+              ) : jobs.errTxt ? (
                 <tr><td colSpan={7} className="p-3 text-left text-error">{jobs.errTxt}</td></tr>
               ) : jobs.data?.length === 0 ? (
                 <tr><td colSpan={7} className="p-3 text-left text-gray">{"No jobs found"}</td></tr>
               ) : (
-                jobs.data?.map((ele: BackJobs, rowIdx) => (
+                jobs.data?.map((ele: BackJobs) => (
                   <tr key={ele.id} className="hover:bg-hover transition-colors">
                     {jobHeaders.map((col, idx) => {
                       const val = ele[col.id] ?? "";

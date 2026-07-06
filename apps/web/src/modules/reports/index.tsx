@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie } from 'recharts';
 import { useApiService } from '../../services/useApiService';
 import ErrorMsg from '../../components/ErrorMsg';
 import { STATUS_COLORS, TYPE_COLORS } from '../../utils/helpers';
@@ -35,17 +35,20 @@ const ReportsPage = () => {
     errD:d.status=== 'rejected'? 'failed to load dupes data': null,
     errC:c.status=== 'rejected'? 'failed to load compliance data': null,
   }))
-  }catch(err:any){
-    setReportData((prev)=>({...prev, err:err.mesage}))
+  }catch(err:unknown){
+    const errMsg = err as { data: {message:string, statusCode?:number}};
+    setReportData((prev)=>({...prev, err:errMsg.data.message}))
   }finally{
     setReportData((prev)=>({...prev, isLoad: false}))
   }
-}, [makeReq]);
+}, [makeReq, filters]);
 
   useEffect(() => {
-    fetchReports(filters);
+    const fetchData=async()=>{
+        await fetchReports(filters);
+    }
+    fetchData();
   }, [fetchReports]);
-console.log("rep: ", reportData);
 
 
   const typeData= reportData.usage?.byType?.map((item:{name:string, count:string}) => ({
@@ -141,7 +144,7 @@ console.log("rep: ", reportData);
           <h2 className="text-sm font-semibold text-gray mb-2">Compliance</h2>
           {reportData.isLoad ?
             <div className="h-52 flex items-center justify-center text-muted text-sm">Loading..</div>
-           : !!reportData.errC ?
+           : reportData.errC ?
            <div className="h-52 flex items-center justify-center text-muted text-sm">
             <ErrorMsg msg={reportData.errC} />
             </div>
@@ -266,7 +269,7 @@ console.log("rep: ", reportData);
           <h2 className="text-sm font-semibold text-gray mb-2">Duplicate stat</h2>
           {reportData.isLoad ?
             <div className="flex items-center justify-center text-muted text-sm">Loading..</div>
-           : !!reportData.errD ?
+           : reportData.errD ?
             <ErrorMsg msg={reportData.errD} />
           : !reportData.dupes?
           <div className="flex items-center justify-center text-muted text-sm">

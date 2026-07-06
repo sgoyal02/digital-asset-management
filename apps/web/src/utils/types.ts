@@ -46,7 +46,7 @@ export interface AuthContextType{
     logout:() => void;
     isLoad: boolean; 
     isAuthenticated: boolean;
-    setAuthData:(tokenData:string, user:User,isCheck?:boolean, next?:any) => void;
+    setAuthData:(tokenData:string, user:User,isCheck?:boolean, next?:()=>void) => void;
 }
 export interface ErrMsgProps {
   msg?:string| null;

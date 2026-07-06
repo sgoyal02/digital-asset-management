@@ -2,9 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DashboardService } from "./dashboard.service";
 import { whereExpReport } from "../../types/helper";
 import { prisma } from "../../lib/prisma";
-// import { mockPrismaFn } from "../../tests/util/mockPrisma";
-
-// const testPrisma= mockPrismaFn();
 vi.mock("../../lib/prisma", () => ({
   prisma:{
     asset: {

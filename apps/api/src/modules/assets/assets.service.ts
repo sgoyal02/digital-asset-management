@@ -47,9 +47,7 @@ export class AssetService {
     let useSSL=false; //prod-todo
     const protocol = useSSL? 'https': 'http';
     const metaData = {'Content-Type': mimeType,'x-amz-meta-hash': fileHash};
-    // const fileUrl = `${protocol}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${BUCKET}/${objName}`;
     const fileUrl=`${process.env.MINIO_PUBLIC_URL}/${BUCKET}/${objName}`;
-    // await minioClient.putObject(BUCKET, objName, file.buffer, file.size, metaData);
     try {
   await minioClient.putObject(BUCKET, objName, file.buffer, file.size, metaData);
 } catch (minioErr: unknown) {

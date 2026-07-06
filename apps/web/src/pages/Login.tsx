@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useApiService } from "../services/useApiService";
 import { useAuth } from "../hooks/AuthContext";
-import { replace, useNavigate } from "react-router-dom";
+import {useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [userData, setUserData] = useState({email: "", password: "", showPswd: false});
@@ -11,7 +11,7 @@ export default function Login() {
   const navigate= useNavigate();
 
   useEffect(()=>{
-    if(!!pageState.err){
+    if(pageState.err){
       setTimeout(()=>{
         setPageState((prev)=>({...prev, err:""}))
       }, 3000);
@@ -38,8 +38,9 @@ export default function Login() {
       } else {
         setPageState((prev)=>({...prev,isLoad: false, err: res.message ||'fail api'}));
       }
-    } catch(err:any){
-       setPageState((prev)=>({...prev,isLoad: false, err:err.message || "Login failed. Please try again."}));
+    } catch(err:unknown){
+      const errMsg = err as { data: {message:string, code?:number}};
+       setPageState((prev)=>({...prev,isLoad: false, err:errMsg.data.message || "Login failed. Please try again."}));
       return;
     }
   };

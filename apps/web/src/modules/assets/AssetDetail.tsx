@@ -152,7 +152,7 @@ const AssetDetail=() =>{
         url: `/assets/${param.id}/review`,
         data: {action},
       });
-      const updated = res?.data || res;
+      // const updated = res?.data || res;
       // setAsset((prev: any) => ({ ...prev, data: updated }));
       onBack(); //main list--? or same ui- vNum check
     } catch (err: unknown) {
@@ -197,7 +197,7 @@ const AssetDetail=() =>{
     <div className="min-h-screen bg-base text-main-white">
       {asset.isLoad ?
       <div className="text-center py-12 text-gray-400">Loading detail...</div>
-      : !!asset.err ?
+      : asset.err ?
         <ErrorMsg msg={asset.err}/>
       : !asset.data ?
         <div className="text-center py-12 text-gray-400">asset detail not found.</div>
@@ -255,7 +255,7 @@ const AssetDetail=() =>{
             <Section title="Version history">
               {asset.data?.versions?.length > 0 ? (
                 <div className="space-y-2">
-                  {[...asset.data?.versions].reverse().map((v: any) => (
+                  {[...asset.data.versions].reverse().map((v: any) => (
                     <div
                       key={v.id}
                       className="flex items-center justify-between gap-4 px-4 py-3 rounded-md bg-secondary-700/40 border border-border hover:border-primary-500/30 transition-colors group"

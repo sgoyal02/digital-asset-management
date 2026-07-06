@@ -2,33 +2,29 @@ import { useEffect, useState } from "react";
 import { useApiService } from "../services/useApiService";
 import {type DashboardStats, type DashReports } from "../utils/types";
 import ErrorMsg from "../components/ErrorMsg";
-import { Bar, BarChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 
 const Dashboard = () => {
-    const [stats, setStats] = useState<{isLoad:Boolean, data:DashboardStats|null, errTxt:string}>
+    const [stats, setStats] = useState<{isLoad:boolean, data:DashboardStats|null, errTxt:string}>
                               ({isLoad: false, data:null, errTxt:""});
     const [reportsData, setReportsData]= 
-    useState<{isLoad:Boolean, data:DashReports|null, errTxt:string, days:number}>
+    useState<{isLoad:boolean, data:DashReports|null, errTxt:string, days:number}>
     ({isLoad: false, data:null, errTxt:"", days:7});
     const {makeReq}= useApiService();
-
-    useEffect(()=>{
-      fetchStats();
-      fetchReports(7);
-    },[]);
 
     const fetchStats=async () => {
         try {
             setStats(prev => ({ ...prev, isLoad: true, errTxt: ''}));
             const response = await makeReq({method: 'GET', url: '/dashboard/stats'});
             setStats({isLoad: false,data: response.data || response,errTxt: ''});
-        } catch (err:any) {
+        } catch (err:unknown) {
             console.error('dash stats err: ', err);
-            if (err.code === "ERR_CANCELED" ||err.name === "CanceledError") {
+            const errMsg = err as { data: {message:string, code?:string, name?:string}};
+            if (errMsg.data.code === "ERR_CANCELED" ||errMsg.data.name === "CanceledError") {
               return;
             }
-            setStats({isLoad: false, data: null, errTxt: err.message|| 'Failed to load assets stats.'});
+            setStats({isLoad: false, data: null, errTxt: errMsg.data.message|| 'Failed to load assets stats.'});
         }
     };
 
@@ -44,11 +40,21 @@ const Dashboard = () => {
       } else {
       setReportsData((prev)=>({...prev, isLoad: false,data: res.data?.data, errTxt: ''}));
 }
-    }catch(err:any) {
+    }catch(err:unknown) {
       console.error('dash stats err: ', err);
-      setReportsData((prev)=>({...prev, isLoad: false, data:null, errTxt: err.message|| 'Fail to load reports.'}));
+      const errMsg = err as { data: {message:string, statusCode?:number}};
+      setReportsData((prev)=>({...prev, isLoad: false, data:null, errTxt: errMsg.data.message|| 'Fail to load reports.'}));
     }
     };
+
+    useEffect(()=>{
+      const loadDashState=async()=>{
+        await fetchStats();
+        await fetchReports(7);
+      }
+      loadDashState();
+    },[]);
+
 
   const handleDayChange= (d:number)=> {
     setReportsData((prev)=>({...prev, days:d}))
@@ -62,7 +68,7 @@ const Dashboard = () => {
       </div>
       {stats.isLoad ?
       <div className="text-center py-12 text-gray-400">Loading stats...</div>
-      : !!stats.errTxt ?
+      : stats.errTxt ?
         <ErrorMsg msg={stats.errTxt}/>
       :
       <div className="flex flex-col gap-4">
