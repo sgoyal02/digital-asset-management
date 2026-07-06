@@ -7,7 +7,6 @@ import DialogModal from "../../components/DialogModal";
 
 const CollectionDetail=() =>{
   const param= useParams();
-  console.log("id: ", param.id);
   const [collection, setCollection]= useState<{isLoad:boolean, err: string|null, cData:CollectionDetail|null, assets:CollectionAsset[], itemLoad:boolean}>
   ({isLoad: false, cData:null, assets:[], err:null, itemLoad:false});
   const [modal, setModal] = useState<{state:ModalMode, isSubmit: boolean}>({state:null, isSubmit:false});
@@ -22,7 +21,6 @@ const CollectionDetail=() =>{
         method: 'GET',
         url: `/collections/${param.id}`
       });
-      console.log("ui res detail: ", res);
       setCollection((prev)=>({...prev, isLoad: false, cData: res.data?.cData, assets: res.data?.assetsData}));
     } catch(err:unknown) {
       const errMsg = err as { data: {message:string, statusCode?:number}};
@@ -64,7 +62,6 @@ const CollectionDetail=() =>{
         method:"DELETE",
         url:`/collections/${param.id}/assets/${assetId}`
       })
-      console.log("Res aId del: ", res);
       if(res.success) getDetail();
     }catch(err:unknown){
       console.error(err);
@@ -83,7 +80,6 @@ const CollectionDetail=() =>{
               : `/collections/${modal.state?.cId}/assets`,
         data:modal.state?.type==="move" ? {destId:modal.state.cId} : {assetIds:[modal.state?.assetId]},
       });
-      console.log("res asset action: ", res);
       setModal((prev)=>({...prev, state:null}));
       if(modal.state?.type === "move") getDetail();
     }catch(err:unknown){

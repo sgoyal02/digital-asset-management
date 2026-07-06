@@ -4,8 +4,8 @@ import { Asset, formatDate } from "../../utils/types";
 import StatusBadge from "../../components/StatusBadge";
 import { useNavigate, useParams } from "react-router-dom";
 import { useApiService } from "../../services/useApiService";
-import { useAuth } from "../../hooks/AuthContext";
 import ErrorMsg from "../../components/ErrorMsg";
+import { useAuth } from "../../hooks/useAuth";
 
 function MetaRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -100,14 +100,12 @@ function FilePreview({fileUrl, mimeType, fileName }: { fileUrl: string; mimeType
 
 const AssetDetail=() =>{
   const param= useParams();
-  console.log("id: ", param.id, param.collectionId);
   const [isReview, setReview] = useState<{process:boolean, err:string|null}>({process: false, err:null});
   const [asset, setAsset] = useState<{data:Asset|null, isLoad:boolean, err:string|null}>({data:null, isLoad: false, err:null});
   const [reqReview, setReqReview] = useState<{process:boolean, err:string|null}>({process: false, err:null});
   const { makeReq } = useApiService();
   const navigate= useNavigate();
   const {user:currentUser}= useAuth();
-  console.log("curruser: ", currentUser);
   
   useEffect(()=>{
     fetchAssetDetail();
@@ -124,7 +122,6 @@ const AssetDetail=() =>{
          data: res?.data || res
         }));
     } catch (err: unknown) {
-      console.log("catchEr: ", err);
       const errMsg= err as {data:{message?:string, statusCode?:number}};
       setAsset((prev)=>({...prev, isLoad: false, err: errMsg.data.message|| 'failed fetch asset detail'}))
     }

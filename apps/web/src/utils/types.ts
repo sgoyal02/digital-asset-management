@@ -43,10 +43,11 @@ export interface User{
 export interface AuthContextType{
     user: User|null;
     token?: string|null;
+    refreshToken?: string|null;
     logout:() => void;
     isLoad: boolean; 
     isAuthenticated: boolean;
-    setAuthData:(tokenData:string, user:User,isCheck?:boolean, next?:()=>void) => void;
+    setAuthData:(tokenData:string, refreshToken:string, user:User,isCheck?:boolean, next?:()=>void) => void;
 }
 export interface ErrMsgProps {
   msg?:string| null;
@@ -133,3 +134,9 @@ export interface BackJobs{
   duration:string;
   err:string|null;
 }
+
+export type ReportFilters = {
+  time: number;
+  type: string;
+  dept: string;
+};

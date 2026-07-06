@@ -33,7 +33,6 @@ const Dashboard = () => {
       if(!isPoling)
       setReportsData(prev => ({ ...prev, isLoad: true, errTxt: ''}));
       const res = await makeReq({method: 'GET',url:'/reports/usage', params:{days:d, type:'A', dept:-1}});
-      console.log("res report dash: ", res);
       if (!res.data?.data) {
         setTimeout(() =>fetchReports(d,true), 3000);
         return;

@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie } from 'recharts';
 import { useApiService } from '../../services/useApiService';
 import ErrorMsg from '../../components/ErrorMsg';
 import { STATUS_COLORS, TYPE_COLORS } from '../../utils/helpers';
+import { ReportFilters } from '../../utils/types';
 
 const ReportsPage = () => {
   const { makeReq } = useApiService();
@@ -17,16 +18,14 @@ const ReportsPage = () => {
     { label:'Video', value:'V' }, { label:'Audio', value:'AU' }, {label:'Document', value:'D'}]
 
 
-  const fetchReports = useCallback(async(f=filters) => {
+  const fetchReports = useCallback(async(f:ReportFilters=filters) => {
   setReportData((prev)=>({...prev, isLoad: true, errC:null, errD:null, errU:null, err:null}))
-  console.log("fil pay: ", f);
   try{
   const[u,c,d]= await Promise.allSettled([
     makeReq({method: 'GET',url:'/reports/usage', params:{days:f.time, type:f.type, dept: f.dept}}),
     makeReq({method: 'GET',url:'/reports/compliance', params:{days:f.time, type:f.type, dept: f.dept}}),
     makeReq({method: 'GET',url:'/reports/duplication' , params:{days:f.time, type:f.type, dept: f.dept}}),
   ]);
-  console.log("ucd report: ", u,c,d);
   setReportData((prev)=>({...prev,
     usage:u.status=== 'fulfilled'? u.value?.data.data : null,
     compliance:c.status=== 'fulfilled'? c.value?.data.data : null,
@@ -48,18 +47,26 @@ const ReportsPage = () => {
         await fetchReports(filters);
     }
     fetchData();
-  }, [fetchReports]);
+  }, [filters, fetchReports]);
 
 
-  const typeData= reportData.usage?.byType?.map((item:{name:string, count:string}) => ({
+  const typeData = useMemo(() => { 
+    return reportData.usage?.byType?.map((item:{name:string, count:string}) => ({
     ...item, fill: TYPE_COLORS[item.name]|| "var(--color-secondary-300)"
   }));
-  const statusData=reportData.usage?.byStatus?.map((item:{name:string, count:string}) => ({
+  }, [reportData.usage]);
+
+  const statusData= useMemo(() => { 
+    return reportData.usage?.byStatus?.map((item:{name:string, count:string}) => ({
     ...item, fill: STATUS_COLORS[item.name]|| "var(--color-secondary-300)"
   }));
-  const complianceData=reportData.compliance?.map((item:{name:string, count:string}) => ({
+  }, [reportData.usage]);
+
+  const complianceData=useMemo(() => { 
+    return reportData.compliance?.map((item:{name:string, count:string}) => ({
     ...item, fill: STATUS_COLORS[item.name]|| "var(--color-secondary-300)"
   }));
+  }, [reportData.compliance]);
 
   return (
     <div className="space-y-5">

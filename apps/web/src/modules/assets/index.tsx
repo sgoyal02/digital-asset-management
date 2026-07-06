@@ -29,12 +29,7 @@ const AssetsList = () => {
          data: response?.data || response
         }));
     } catch (err: unknown) {
-      console.log("catchEr: ", err);
       const errMsg = err as { data: {message:string}};
-      // if (err.code === "ERR_CANCELED" ||err.name === "CanceledError") {
-      //   return;
-      // }
-      console.log("afterabort: ", err);
        setAssets((prev)=>({...prev, isLoad: false, error: errMsg.data.message || 'failed fetch assets'}))
     }
   }, [makeReq]);
@@ -89,9 +84,8 @@ const AssetsList = () => {
       data: formData,
       headers:{"Content-Type": "multipart/form-data"},
     });
-    console.log("res: ", response);
     }catch(err:unknown){
-      console.log("err: ", err);
+      console.error("err: ", err);
     } finally{
       fetchAssets();
     }
@@ -112,7 +106,6 @@ const AssetsList = () => {
   }
 
   const onAddToCollection=async()=>{
-    console.log("sle asse: ", selectedIds.aIds, Array.from(selectedIds.aIds), selectedIds);
     if(!selectedIds.cId) return;
     try{
       const response = await makeReq({
@@ -120,14 +113,12 @@ const AssetsList = () => {
       url:`/collections/${selectedIds.cId}/assets`,
       data:{assetIds:Array.from(selectedIds.aIds)}
     });
-    console.log("res: ", response);
     if(response.success){
       setSelectedIds((prev)=>({...prev, aIds:new Set(), err:null}));
       fetchAssets();
     }
     }catch(err:unknown){
       const errMsg = err as { data: {message:string, statusCode?:number}};
-      console.log("err: ", err);
       setSelectedIds((prev)=>({...prev, err: errMsg.data.message|| 'fail to add to col'}));
     } finally{
       setSelectedIds((prev)=>({...prev, isSubmit: false, isAdd: false, cId:null}));

@@ -1,5 +1,6 @@
-import { useAuth } from '../../hooks/AuthContext';
+
 import logo from '../../../src/images/logo.svg';
+import { useAuth } from '../../hooks/useAuth';
 import type { HeaderProp } from '../../utils/types';
 
 

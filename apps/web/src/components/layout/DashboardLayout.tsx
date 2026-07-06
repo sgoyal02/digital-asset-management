@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../hooks/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 const DashboardLayout = () => {
     const [isOpen, setOpen] = useState(true);

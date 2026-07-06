@@ -13,7 +13,7 @@ vi.mock("react-router-dom", async () => {
     useNavigate: () => tstNavigate,
   };
 });
-vi.mock("../hooks/AuthContext", () => ({
+vi.mock("../hooks/useAuth", () => ({
   useAuth:() => ({setAuthData: testSetAuth}),
 }));
 

@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { Collection, formatDate } from "../../utils/types";
 import { useApiService } from "../../services/useApiService";
 import ErrorMsg from "../../components/ErrorMsg";
-import { useAuth } from "../../hooks/AuthContext";
 import { useNavigate } from "react-router-dom";
 import DialogModal from "../../components/DialogModal";
+import { useAuth } from "../../hooks/useAuth";
 
 const CollectionsList=() =>{
   const [collections, setCollections] = useState<{data:Collection[], isLoad: boolean, err:string|null}>
@@ -84,7 +84,6 @@ const CollectionsList=() =>{
         method:"DELETE",
         url:`/collections/${cId}`
       });
-      console.log("res del collction: ", res);
       if(res.success) fetchCollections();
     }catch(err:unknown){
       console.error(err);
